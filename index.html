@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter Collector</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1>📚 Chapter Collector</h1>
+        <p>Kumpulkan, edit, simpan, dan buat ZIP chapter untuk Madara.</p>
+      </div>
+      <div class="storage-status" id="storageStatus">● Tersimpan otomatis</div>
+    </header>
+
+    <!-- INPUT CHAPTER: sengaja ditempatkan paling atas -->
+    <section class="editor-panel card">
+      <div class="panel-heading editor-heading">
+        <div>
+          <h2>✍️ Input Chapter</h2>
+          <span id="editorStatus">Siap untuk chapter berikutnya.</span>
+        </div>
+        <span class="editor-shortcut">Ctrl + V juga bisa digunakan</span>
+      </div>
+
+      <div class="chapter-meta">
+        <div class="field chapter-number-field">
+          <label for="chapterNumber">Nomor Chapter</label>
+          <input id="chapterNumber" type="number" min="0" step="1" placeholder="1">
+        </div>
+        <button type="button" class="btn btn-secondary" id="detectChapterBtn">🔎 Deteksi</button>
+      </div>
+
+      <div class="editor-wrap">
+        <div id="chapterEditor" class="rich-editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true"></div>
+        <div class="editor-placeholder">Paste atau tulis terjemahan chapter di sini...</div>
+        <div class="editor-tools">
+          <button type="button" class="btn btn-secondary paste-btn" id="pasteBtn" title="Paste dengan mempertahankan format HTML">📋 Paste</button>
+        </div>
+      </div>
+
+      <div class="editor-info">
+        <span id="editorStats">0 karakter · 0 kata · 0 paragraf</span>
+        <span id="editorSaveHint">Perubahan disimpan otomatis</span>
+      </div>
+
+      <div class="editor-actions">
+        <button type="button" class="btn btn-primary grow" id="addChapterBtn">➕ Tambah Chapter</button>
+        <button type="button" class="btn btn-secondary" id="updateChapterBtn">✏ Update</button>
+        <button type="button" class="btn btn-secondary" id="clearDraftBtn">🧹 Bersihkan Input</button>
+        <button type="button" class="btn btn-secondary" id="importTxtBtn">📄 Import TXT</button>
+        <input id="txtFileInput" type="file" accept=".txt,text/plain" hidden>
+      </div>
+    </section>
+
+    <!-- CHAPTER SEMENTARA: berada tepat di bawah input -->
+    <section class="chapter-panel card">
+      <div class="panel-heading">
+        <div>
+          <h2>📋 Chapter Sementara</h2>
+          <span id="chapterCount">0 chapter</span>
+        </div>
+        <span class="panel-hint">Klik untuk preview · Edit dari popup</span>
+      </div>
+      <div id="chapterList" class="chapter-list" aria-live="polite"></div>
+      <div class="list-actions">
+        <button type="button" class="btn btn-danger" id="deleteChapterBtn">🗑 Hapus</button>
+        <button type="button" class="btn btn-secondary" id="clearAllBtn">🧹 Hapus Semua</button>
+      </div>
+    </section>
+
+    <!-- NAMA NOVEL + GENERATE ZIP: bagian paling bawah -->
+    <section class="project-bar card">
+      <div class="field novel-field">
+        <label for="novelName">Nama Novel</label>
+        <input id="novelName" type="text" placeholder="Nama novel" autocomplete="off">
+      </div>
+      <div class="project-actions">
+        <div class="project-status-wrap">
+          <div id="projectStatus" class="project-status">Belum ada chapter.</div>
+          <div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div>
+        </div>
+        <button type="button" class="btn btn-primary generate-btn" id="generateZipBtn">📦 Generate ZIP</button>
+      </div>
+    </section>
+
+    <section class="format-note card">
+      <strong>💡 Alur cepat:</strong>
+      <span>Paste → Deteksi → Tambah → otomatis siap ke chapter berikutnya → Preview/Edit bila perlu → Generate ZIP.</span>
+    </section>
+  </main>
+
+  <!-- POPUP PREVIEW -->
+  <div id="previewModal" class="modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" data-close-preview></div>
+    <section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+      <header class="preview-header">
+        <div>
+          <div class="preview-kicker">Preview Chapter</div>
+          <h2 id="previewTitle">Chapter</h2>
+        </div>
+        <button type="button" class="icon-btn" id="closePreviewBtn" aria-label="Tutup preview">✕</button>
+      </header>
+      <div id="previewContent" class="preview-content"></div>
+      <footer class="preview-footer">
+        <span id="previewStats">0 karakter · 0 kata</span>
+        <div class="preview-actions">
+          <button type="button" class="btn btn-secondary" id="previewEditBtn">✏ Edit Chapter</button>
+          <button type="button" class="btn btn-primary" id="previewCloseActionBtn">Tutup</button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
