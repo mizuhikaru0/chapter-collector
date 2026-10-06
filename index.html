@@ -16,35 +16,82 @@
       <div class="storage-status" id="storageStatus">● Tersimpan otomatis</div>
     </header>
 
-    <nav class="tabs" role="tablist" aria-label="Chapter Collector">
-      <button type="button" class="tab-btn active" id="tabInput" role="tab" aria-selected="true" aria-controls="panelInput">✍️ Input Chapter</button>
-      <button type="button" class="tab-btn" id="tabChapters" role="tab" aria-selected="false" aria-controls="panelChapters">📋 Chapter Sementara <span class="tab-badge" id="tabChapterCount">0</span></button>
-      <button type="button" class="tab-btn" id="tabProject" role="tab" aria-selected="false" aria-controls="panelProject">📦 Project & ZIP</button>
-    </nav>
+    <!-- INPUT CHAPTER: sengaja ditempatkan paling atas -->
+    <section class="editor-panel card">
+      <div class="panel-heading editor-heading">
+        <div>
+          <h2>✍️ Input Chapter</h2>
+          <span id="editorStatus">Siap untuk chapter berikutnya.</span>
+        </div>
+        <span class="editor-shortcut">Ctrl + V juga bisa digunakan</span>
+      </div>
 
-    <section class="tab-panel active" id="panelInput" role="tabpanel" aria-labelledby="tabInput">
-      <section class="editor-panel card">
-        <div class="panel-heading editor-heading"><div><h2>✍️ Input Chapter</h2><span id="editorStatus">Siap untuk chapter berikutnya.</span></div><span class="editor-shortcut">Ctrl + V juga bisa digunakan</span></div>
-        <div class="chapter-meta"><div class="field chapter-number-field"><label for="chapterNumber">Nomor Chapter</label><input id="chapterNumber" type="number" min="0" step="1" placeholder="1"></div><button type="button" class="btn btn-secondary" id="detectChapterBtn">🔎 Deteksi</button></div>
-        <div class="editor-wrap"><div id="chapterEditor" class="rich-editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true"></div><div class="editor-placeholder">Paste atau tulis terjemahan chapter di sini...</div><div class="editor-tools"><button type="button" class="btn btn-secondary paste-btn" id="pasteBtn" title="Paste dengan mempertahankan format HTML">📋 Paste</button></div></div>
-        <div class="editor-info"><span id="editorStats">0 karakter · 0 kata · 0 paragraf</span><span id="editorSaveHint">Perubahan disimpan otomatis</span></div>
-        <div class="editor-actions"><button type="button" class="btn btn-primary grow" id="addChapterBtn">➕ Tambah Chapter</button><button type="button" class="btn btn-secondary" id="updateChapterBtn">✏ Update</button><button type="button" class="btn btn-secondary" id="clearDraftBtn">🧹 Bersihkan Input</button><button type="button" class="btn btn-secondary" id="importTxtBtn">📄 Import TXT</button><input id="txtFileInput" type="file" accept=".txt,text/plain" hidden></div>
-      </section>
-      <section class="format-note card"><strong>💡 Alur cepat:</strong><span>Paste → Deteksi/isi nomor → Tambah → Input dikosongkan → ulangi → cek daftar → Generate ZIP.</span></section>
+      <div class="chapter-meta">
+        <div class="field chapter-number-field">
+          <label for="chapterNumber">Nomor Chapter</label>
+          <input id="chapterNumber" type="number" min="0" step="1" placeholder="1">
+        </div>
+        <button type="button" class="btn btn-secondary" id="detectChapterBtn">🔎 Deteksi</button>
+      </div>
+
+      <div class="editor-wrap">
+        <div id="chapterEditor" class="rich-editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true"></div>
+        <div class="editor-placeholder">Paste atau tulis terjemahan chapter di sini...</div>
+        <div class="editor-tools">
+          <button type="button" class="btn btn-secondary paste-btn" id="pasteBtn" title="Paste dengan mempertahankan format HTML">📋 Paste</button>
+        </div>
+      </div>
+
+      <div class="editor-info">
+        <span id="editorStats">0 karakter · 0 kata · 0 paragraf</span>
+        <span id="editorSaveHint">Perubahan disimpan otomatis</span>
+      </div>
+
+      <div class="editor-actions">
+        <button type="button" class="btn btn-primary grow" id="addChapterBtn">➕ Tambah Chapter</button>
+        <button type="button" class="btn btn-secondary" id="updateChapterBtn">✏ Update</button>
+        <button type="button" class="btn btn-secondary" id="clearDraftBtn">🧹 Bersihkan Input</button>
+        <button type="button" class="btn btn-secondary" id="importTxtBtn">📄 Import TXT</button>
+        <input id="txtFileInput" type="file" accept=".txt,text/plain" hidden>
+      </div>
     </section>
 
-    <section class="tab-panel" id="panelChapters" role="tabpanel" aria-labelledby="tabChapters" hidden>
-      <section class="chapter-panel card">
-        <div class="panel-heading"><div><h2>📋 Chapter Sementara</h2><span id="chapterCount">0 chapter</span></div><span class="panel-hint">Klik chapter untuk membuka preview · Edit dari popup</span></div>
-        <div id="chapterList" class="chapter-list" aria-live="polite"></div>
-        <div class="list-actions"><button type="button" class="btn btn-danger" id="deleteChapterBtn">🗑 Hapus</button><button type="button" class="btn btn-secondary" id="clearAllBtn">🧹 Hapus Semua</button></div>
-      </section>
+    <!-- CHAPTER SEMENTARA: berada tepat di bawah input -->
+    <section class="chapter-panel card">
+      <div class="panel-heading">
+        <div>
+          <h2>📋 Chapter Sementara</h2>
+          <span id="chapterCount">0 chapter</span>
+        </div>
+        <span class="panel-hint">Klik untuk preview · Edit dari popup</span>
+      </div>
+      <div id="chapterList" class="chapter-list" aria-live="polite"></div>
+      <div class="list-actions">
+        <button type="button" class="btn btn-danger" id="deleteChapterBtn">🗑 Hapus</button>
+        <button type="button" class="btn btn-secondary" id="clearAllBtn">🧹 Hapus Semua</button>
+      </div>
     </section>
 
-    <section class="tab-panel" id="panelProject" role="tabpanel" aria-labelledby="tabProject" hidden>
-      <section class="project-bar card"><div class="field novel-field"><label for="novelName">Nama Novel</label><input id="novelName" type="text" placeholder="Nama novel" autocomplete="off"></div><div class="project-actions"><div class="project-status-wrap"><div id="projectStatus" class="project-status">Belum ada chapter.</div><div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div></div><button type="button" class="btn btn-primary generate-btn" id="generateZipBtn">📦 Generate ZIP</button></div></section>
-      <section class="project-help card"><div class="project-help-title">📦 Status Project</div><p>Nama ZIP dibuat otomatis berdasarkan nama novel dan rentang chapter yang tersimpan.</p><div class="zip-example">Contoh: Novel10-20.zip</div><button type="button" class="btn btn-secondary" id="goToChaptersBtn">📋 Lihat Chapter Sementara</button></section>
+    <!-- NAMA NOVEL + GENERATE ZIP: bagian paling bawah -->
+    <section class="project-bar card">
+      <div class="field novel-field">
+        <label for="novelName">Nama Novel</label>
+        <input id="novelName" type="text" placeholder="Nama novel" autocomplete="off">
+      </div>
+      <div class="project-actions">
+        <div class="project-status-wrap">
+          <div id="projectStatus" class="project-status">Belum ada chapter.</div>
+          <div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div>
+        </div>
+        <button type="button" class="btn btn-primary generate-btn" id="generateZipBtn">📦 Generate ZIP</button>
+      </div>
     </section>
+
+    <section class="format-note card">
+      <strong>💡 Alur cepat:</strong>
+      <span>Paste → Deteksi → Tambah → otomatis siap ke chapter berikutnya → Preview/Edit bila perlu → Generate ZIP.</span>
+    </section>
+  </main>
 
   <!-- POPUP PREVIEW -->
   <div id="previewModal" class="modal" hidden aria-hidden="true">
