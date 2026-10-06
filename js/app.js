@@ -20,6 +20,9 @@ const previewContent = $("previewContent");
 const previewTitle = $("previewTitle");
 const previewStats = $("previewStats");
 const previewEditBtn = $("previewEditBtn");
+const tabButtons = [$("tabInput"), $("tabChapters"), $("tabProject")];
+const tabPanels = { input: $("panelInput"), chapters: $("panelChapters"), project: $("panelProject") };
+const tabChapterCount = $("tabChapterCount");
 
 const state = {
   novelName: "",
@@ -31,6 +34,20 @@ const state = {
 };
 
 let saveTimer = null;
+
+function setActiveTab(name) {
+  if (!Object.prototype.hasOwnProperty.call(tabPanels, name)) name = "input";
+  tabButtons.forEach(button => {
+    const active = button.id === `tab${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  for (const [key, panel] of Object.entries(tabPanels)) {
+    const active = key === name;
+    panel.classList.toggle("active", active);
+    panel.hidden = !active;
+  }
+}
 
 function showToast(message) {
   toast.textContent = message;
@@ -102,6 +119,8 @@ function scheduleSave() {
 function renderList() {
   const numbers = Object.keys(state.chapters).map(Number).sort((a, b) => a - b);
   chapterList.innerHTML = "";
+  tabChapterCount.textContent = String(numbers.length);
+  tabChapterCount.classList.toggle("has-items", numbers.length > 0);
   chapterCount.textContent = numbers.length
     ? (numbers.length === 1 ? "1 chapter" : `${numbers.length} chapter · ${numbers[0]}–${numbers[numbers.length - 1]}`)
     : "0 chapter";
@@ -171,7 +190,7 @@ function editPreviewedChapter() {
   closePreview();
   renderList();
   scheduleSave();
-  editor.scrollIntoView({ behavior: "smooth", block: "start" });
+  setActiveTab("input");
   editor.focus();
 }
 
@@ -406,6 +425,7 @@ async function init() {
 
   renderList();
   updateEditorStats();
+  setActiveTab("input");
   storageStatus.textContent = "● Tersimpan otomatis";
 }
 
@@ -418,6 +438,11 @@ editor.addEventListener("input", () => {
   updateEditorStats();
   scheduleSave();
 });
+
+tabButtons[0].addEventListener("click", () => setActiveTab("input"));
+tabButtons[1].addEventListener("click", () => setActiveTab("chapters"));
+tabButtons[2].addEventListener("click", () => setActiveTab("project"));
+$("goToChaptersBtn").addEventListener("click", () => setActiveTab("chapters"));
 
 $("pasteBtn").addEventListener("click", pasteClipboard);
 $("detectChapterBtn").addEventListener("click", () => detectChapter(false));
