@@ -19,7 +19,7 @@ export function cleanHtml(raw) {
     while (walker.nextNode()) comments.push(walker.currentNode);
     comments.forEach(comment => comment.remove());
 
-    // Ubah pembatas blok dan <br> menjadi newline penanda.
+    // Ubah pembatas blok dan <br> menjadi newline penanda sementara.
     let html = doc.body.innerHTML;
     html = html.replace(/<\s*br\s*\/?>/gi, "\n");
     html = html.replace(
@@ -77,5 +77,5 @@ export function cleanHtml(raw) {
         }
 
         return `<p style="text-align: justify; text-indent: 2em;">${line}</p>`;
-    }).join("\n<br>\n");
+    }).join("\n");
 }
