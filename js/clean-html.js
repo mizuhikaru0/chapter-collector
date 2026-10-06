@@ -77,5 +77,5 @@ export function cleanHtml(raw) {
         }
 
         return `<p style="text-align: justify; text-indent: 2em;">${line}</p>`;
-    }).join("\n<br>\n");
+    }).join("\n");
 }
