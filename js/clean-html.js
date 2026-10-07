@@ -59,7 +59,7 @@ export function cleanHtml(raw) {
         const plainText = line.replace(/<[^>]+>/g, "").trim();
 
         if (index <= 1) {
-            const match = plainText.match(chapterRegex);
+            const match = plainText.match(chapterRegex) || plainText.match(/^(\d+)\.\s*(.*)$/);
             if (match) {
                 const chapterNum = match[1];
                 const chapterTitle = match[2] ? match[2].trim() : "";
@@ -76,6 +76,6 @@ export function cleanHtml(raw) {
             }
         }
 
-        return `<p style="text-align: justify; text-indent: 2em;">${line}</p>`;
+        return `<p style="text-align: justify;">${line}</p>`;
     }).join("\n");
 }
