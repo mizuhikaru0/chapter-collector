@@ -24,8 +24,32 @@
 
     <section class="tab-panel active" id="panelInput" role="tabpanel" aria-labelledby="tabInput">
       <section class="editor-panel card">
-        <div class="panel-heading editor-heading"><div><h2>✍️ Input Chapter</h2><span id="editorStatus">Siap untuk chapter berikutnya.</span></div><span class="editor-shortcut">Ctrl + V juga bisa digunakan</span></div>
-        <div class="chapter-meta"><div class="field chapter-number-field"><label for="chapterNumber">Nomor Chapter</label><input id="chapterNumber" type="number" min="0" step="1" placeholder="1"></div><button type="button" class="btn btn-secondary" id="detectChapterBtn">🔎 Deteksi</button></div>
+        <div class="panel-heading editor-heading"><div><h2>✍️ Input Chapter</h2><span id="editorStatus">Siap untuk chapter berikutnya.</span></div><span class="editor-shortcut">Ctrl + V juga bisa digunakan</span></div>       
+<div class="chapter-meta">
+  <div class="field chapter-number-field">
+    <label for="chapterNumber">Nomor Chapter</label>
+    <input
+      id="chapterNumber"
+      type="number"
+      min="0"
+      step="1"
+      placeholder="1"
+    >
+    <button
+      type="button"
+      id="chapterNumberSuggestion"
+      class="chapter-number-suggestion"
+      hidden
+      title="Gunakan nomor chapter yang disarankan"
+    ></button>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-secondary"
+    id="detectChapterBtn"
+  >🔎 Deteksi</button>
+</div>
         <div class="editor-wrap"><div id="chapterEditor" class="rich-editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true"></div><div class="editor-placeholder">Paste atau tulis terjemahan chapter di sini...</div><div class="editor-tools"><button type="button" class="btn btn-secondary paste-btn" id="pasteBtn" title="Paste dengan mempertahankan format HTML">📋 Paste</button></div></div>
         <div class="editor-info"><span id="editorStats">0 karakter · 0 kata · 0 paragraf</span><span id="editorSaveHint">Perubahan disimpan otomatis</span></div>
         <div class="editor-actions"><button type="button" class="btn btn-primary grow" id="addChapterBtn">➕ Tambah Chapter</button><button type="button" class="btn btn-secondary" id="updateChapterBtn">✏ Update</button><button type="button" class="btn btn-secondary" id="clearDraftBtn">🧹 Bersihkan Input</button><button type="button" class="btn btn-secondary" id="importTxtBtn">📄 Import TXT</button><input id="txtFileInput" type="file" accept=".txt,text/plain" hidden></div>

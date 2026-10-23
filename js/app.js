@@ -7,6 +7,7 @@ const $ = id => document.getElementById(id);
 const novelName = $("novelName");
 const chapterNumber = $("chapterNumber");
 const editor = $("chapterEditor");
+const chapterNumberSuggestion = $("chapterNumberSuggestion");
 const chapterList = $("chapterList");
 const chapterCount = $("chapterCount");
 const projectStatus = $("projectStatus");
@@ -21,12 +22,12 @@ const previewTitle = $("previewTitle");
 const previewStats = $("previewStats");
 const previewEditBtn = $("previewEditBtn");
 const tabButtons = [$("tabInput"), $("tabChapters"), $("tabProject")];
-const tabPanels = { input: $("panelInput"), chapters: $("panelChapters"), project: $("panelProject") };
+const tabPanels = {
+  input: $("panelInput"),
+  chapters: $("panelChapters"),
+  project: $("panelProject")
+};
 const tabChapterCount = $("tabChapterCount");
-const selectAllChapters = $("selectAllChapters");
-const selectedChapterCount = $("selectedChapterCount");
-
-const selectedChapters = new Set();
 
 const state = {
   novelName: "",
@@ -34,18 +35,27 @@ const state = {
   draft: "",
   chapters: {},
   selected: null,
-  previewed: null
+  previewed: null,
+  lastAddedChapterNumber: null
 };
 
 let saveTimer = null;
+const deletionSelection = new Set();
 
 function setActiveTab(name) {
-  if (!Object.prototype.hasOwnProperty.call(tabPanels, name)) name = "input";
+  if (!Object.prototype.hasOwnProperty.call(tabPanels, name)) {
+    name = "input";
+  }
+
   tabButtons.forEach(button => {
-    const active = button.id === `tab${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+    const active =
+      button.id ===
+      `tab${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", active ? "true" : "false");
   });
+
   for (const [key, panel] of Object.entries(tabPanels)) {
     const active = key === name;
     panel.classList.toggle("active", active);
@@ -56,14 +66,22 @@ function setActiveTab(name) {
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
+
   clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+
+  showToast.timer = setTimeout(
+    () => toast.classList.remove("show"),
+    2200
+  );
 }
 
 function getPlainText(html) {
   const box = document.createElement("div");
   box.innerHTML = html || "";
-  return (box.innerText || box.textContent || "").replace(/\u00a0/g, " ").trim();
+
+  return (box.innerText || box.textContent || "")
+    .replace(/\u00a0/g, " ")
+    .trim();
 }
 
 function countWords(text) {
@@ -74,27 +92,51 @@ function updateEditorStats() {
   const text = getPlainText(editor.innerHTML);
   const characters = text.length;
   const words = countWords(text);
+
   const paragraphs = text
-    ? Math.max(1, editor.querySelectorAll("p, h1, h2, h3, h4, h5, h6, blockquote, li").length || text.split(/\n+/).filter(Boolean).length)
+    ? Math.max(
+        1,
+        editor.querySelectorAll(
+          "p, h1, h2, h3, h4, h5, h6, blockquote, li"
+        ).length || text.split(/\n+/).filter(Boolean).length
+      )
     : 0;
-  editorStats.textContent = `${characters.toLocaleString("id-ID")} karakter · ${words.toLocaleString("id-ID")} kata · ${paragraphs.toLocaleString("id-ID")} paragraf`;
+
+  editorStats.textContent =
+    `${characters.toLocaleString("id-ID")} karakter · ` +
+    `${words.toLocaleString("id-ID")} kata · ` +
+    `${paragraphs.toLocaleString("id-ID")} paragraf`;
 }
 
 function getSafeNovelName() {
-  return (novelName.value.trim() || "Novel")
-    .replace(/[<>:"/\\|?*]+/g, "_")
-    .replace(/\s+/g, "_")
-    .replace(/[. ]+$/g, "") || "Novel";
+  return (
+    (novelName.value.trim() || "Novel")
+      .replace(/[<>:"/\\|?*]+/g, "_")
+      .replace(/\s+/g, "_")
+      .replace(/[. ]+$/g, "") || "Novel"
+  );
 }
 
-function getZipFileName(numbers = Object.keys(state.chapters).map(Number)) {
-  if (!numbers.length) return `${getSafeNovelName()}.zip`;
+function getZipFileName(
+  numbers = Object.keys(state.chapters).map(Number)
+) {
+  if (!numbers.length) {
+    return `${getSafeNovelName()}.zip`;
+  }
+
   const sorted = [...numbers].sort((a, b) => a - b);
-  return `${getSafeNovelName()}${sorted[0]}-${sorted[sorted.length - 1]}.zip`;
+
+  return (
+    `${getSafeNovelName()}` +
+    `${sorted[0]}-${sorted[sorted.length - 1]}.zip`
+  );
 }
 
 function updateProjectStatus() {
-  const numbers = Object.keys(state.chapters).map(Number).sort((a, b) => a - b);
+  const numbers = Object.keys(state.chapters)
+    .map(Number)
+    .sort((a, b) => a - b);
+
   const count = numbers.length;
 
   if (!count) {
@@ -103,23 +145,66 @@ function updateProjectStatus() {
     return;
   }
 
-  projectStatus.textContent = count === 1
-    ? "1 chapter siap di-generate."
-    : `${count} chapter · Chapter ${numbers[0]}–${numbers[numbers.length - 1]}`;
-  zipNamePreview.textContent = `Nama ZIP: ${getZipFileName(numbers)}`;
+  projectStatus.textContent =
+    count === 1
+      ? "1 chapter siap di-generate."
+      : `${count} chapter · Chapter ${numbers[0]}–${numbers[numbers.length - 1]}`;
+
+  zipNamePreview.textContent =
+    `Nama ZIP: ${getZipFileName(numbers)}`;
 }
 
 function scheduleSave() {
   clearTimeout(saveTimer);
+
   saveTimer = setTimeout(async () => {
     state.novelName = novelName.value;
     state.chapterNumber = chapterNumber.value;
     state.draft = editor.innerHTML;
+
     await saveState(state);
+
     storageStatus.textContent = "● Tersimpan otomatis";
   }, 250);
 }
 
+/* =========================================================
+   PEMILIHAN DAN PENGHAPUSAN CHAPTER
+   ========================================================= */
+
+function updateDeleteSelectionUI() {
+  const existingNumbers = new Set(
+    Object.keys(state.chapters).map(Number)
+  );
+
+  for (const number of deletionSelection) {
+    if (!existingNumbers.has(number)) {
+      deletionSelection.delete(number);
+    }
+  }
+
+  const selectedCount = deletionSelection.size;
+  const deleteButton = $("deleteChapterBtn");
+  const selectedCountLabel = $("selectedChapterCount");
+
+  // PERBAIKAN: ID harus sama dengan yang ada di index.html.
+  const selectAllCheckbox = $("selectAllChapters");
+
+  const totalCount = existingNumbers.size;
+
+  deleteButton.disabled = selectedCount === 0;
+
+  selectedCountLabel.textContent =
+    `${selectedCount} dipilih`;
+
+  selectAllCheckbox.checked =
+    totalCount > 0 && selectedCount === totalCount;
+
+  selectAllCheckbox.indeterminate =
+    selectedCount > 0 && selectedCount < totalCount;
+
+  selectAllCheckbox.disabled = totalCount === 0;
+}
 
 function renderList() {
   const numbers = Object.keys(state.chapters)
@@ -128,64 +213,70 @@ function renderList() {
 
   chapterList.innerHTML = "";
 
-  // Bersihkan pilihan yang nomor chapternya sudah tidak ada.
-  for (const number of selectedChapters) {
-    if (!Object.prototype.hasOwnProperty.call(state.chapters, number)) {
-      selectedChapters.delete(number);
-    }
-  }
-
   tabChapterCount.textContent = String(numbers.length);
-  tabChapterCount.classList.toggle("has-items", numbers.length > 0);
+
+  tabChapterCount.classList.toggle(
+    "has-items",
+    numbers.length > 0
+  );
 
   chapterCount.textContent = numbers.length
-    ? (numbers.length === 1
-        ? "1 chapter"
-        : `${numbers.length} chapter · ${numbers[0]}–${numbers[numbers.length - 1]}`)
+    ? (
+        numbers.length === 1
+          ? "1 chapter"
+          : ` ${numbers.length} chapter · ${numbers[0]}–${numbers[numbers.length - 1]}`
+      ).trim()
     : "0 chapter";
 
   updateProjectStatus();
 
   if (!numbers.length) {
-    chapterList.innerHTML = `
-      <div class="empty-list">
-        Belum ada chapter.<br>
-        <small>Chapter yang ditambahkan akan muncul di sini.</small>
-      </div>
-    `;
-    updateChapterSelectionControls(numbers);
+    chapterList.innerHTML =
+      `<div class="empty-list">Belum ada chapter.<br>` +
+      `<small>Chapter yang ditambahkan akan muncul di sini.</small></div>`;
+
+    updateDeleteSelectionUI();
     return;
   }
 
   for (const number of numbers) {
     const row = document.createElement("div");
-    row.className = "chapter-row";
+
+    row.className =
+      `chapter-item` +
+      `${state.previewed === number ? " previewing" : ""}` +
+      `${deletionSelection.has(number) ? " deletion-selected" : ""}`;
 
     const checkbox = document.createElement("input");
+
     checkbox.type = "checkbox";
     checkbox.className = "chapter-select-checkbox";
-    checkbox.checked = selectedChapters.has(number);
-    checkbox.setAttribute("aria-label", `Pilih Chapter ${number}`);
+    checkbox.checked = deletionSelection.has(number);
+
+    checkbox.setAttribute(
+      "aria-label",
+      `Pilih Chapter ${number} untuk dihapus`
+    );
 
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) {
-        selectedChapters.add(number);
+        deletionSelection.add(number);
       } else {
-        selectedChapters.delete(number);
+        deletionSelection.delete(number);
       }
 
-      updateChapterSelectionControls(numbers);
+      renderList();
     });
 
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className =
-      `chapter-item${state.previewed === number ? " previewing" : ""}`;
+    const previewButton = document.createElement("button");
+
+    previewButton.type = "button";
+    previewButton.className = "chapter-preview-button";
 
     const text = getPlainText(state.chapters[number]);
     const wordCount = countWords(text);
 
-    button.innerHTML = `
+    previewButton.innerHTML = `
       <span class="chapter-item-main">
         <strong>Chapter ${number}</strong>
         <small>${wordCount.toLocaleString("id-ID")} kata</small>
@@ -193,77 +284,92 @@ function renderList() {
       <span class="chapter-item-arrow">›</span>
     `;
 
-    button.addEventListener("click", () => openPreview(number));
+    previewButton.addEventListener("click", () => {
+      openPreview(number);
+    });
 
-    row.append(checkbox, button);
+    row.append(checkbox, previewButton);
     chapterList.appendChild(row);
   }
 
-  updateChapterSelectionControls(numbers);
+  updateDeleteSelectionUI();
 }
-
-function updateChapterSelectionControls(numbers) {
-  const selectedCount = numbers.filter(number =>
-    selectedChapters.has(number)
-  ).length;
-
-  selectedChapterCount.textContent = `${selectedCount} dipilih`;
-  $("deleteChapterBtn").disabled = selectedCount === 0;
-
-  selectAllChapters.checked =
-    numbers.length > 0 && selectedCount === numbers.length;
-
-  selectAllChapters.indeterminate =
-    selectedCount > 0 && selectedCount < numbers.length;
-}
-
 
 function openPreview(number) {
   const content = state.chapters[number];
+
   if (content == null) return;
 
   state.previewed = number;
+
   previewTitle.textContent = `Chapter ${number}`;
   previewContent.innerHTML = content;
 
   const text = getPlainText(content);
-  previewStats.textContent = `${text.length.toLocaleString("id-ID")} karakter · ${countWords(text).toLocaleString("id-ID")} kata`;
+
+  previewStats.textContent =
+    `${text.length.toLocaleString("id-ID")} karakter · ` +
+    `${countWords(text).toLocaleString("id-ID")} kata`;
+
   previewEditBtn.dataset.chapter = String(number);
 
   previewModal.hidden = false;
   previewModal.setAttribute("aria-hidden", "false");
+
   document.body.classList.add("modal-open");
+
   renderList();
 
-  requestAnimationFrame(() => $("closePreviewBtn").focus());
+  requestAnimationFrame(() => {
+    $("closePreviewBtn").focus();
+  });
 }
 
 function closePreview() {
   previewModal.hidden = true;
   previewModal.setAttribute("aria-hidden", "true");
+
   document.body.classList.remove("modal-open");
+
   state.previewed = null;
+
   renderList();
 }
 
 function editPreviewedChapter() {
   const number = Number(previewEditBtn.dataset.chapter);
-  if (!Number.isFinite(number) || state.chapters[number] == null) return;
+
+  if (
+    !Number.isFinite(number) ||
+    state.chapters[number] == null
+  ) {
+    return;
+  }
 
   state.selected = number;
   chapterNumber.value = number;
   editor.innerHTML = state.chapters[number];
+
   updateEditorStats();
-  editorStatus.textContent = `Chapter ${number} sedang diedit.`;
+
+  editorStatus.textContent =
+    `Chapter ${number} sedang diedit.`;
+
   closePreview();
   renderList();
   scheduleSave();
+
   setActiveTab("input");
   editor.focus();
 }
 
+/* =========================================================
+   DETEKSI DAN SARAN NOMOR CHAPTER
+   ========================================================= */
+
 function detectChapter(silent = false) {
   const source = editor.innerHTML || editor.textContent || "";
+
   const patterns = [
     /<h[1-6][^>]*>\s*(?:BAB|Chapter|Ch\.)\s+(\d+)\b/i,
     /^(?:BAB|Chapter|Ch\.)\s+(\d+)\b/im,
@@ -273,15 +379,27 @@ function detectChapter(silent = false) {
 
   for (const pattern of patterns) {
     const match = source.match(pattern);
+
     if (match) {
       chapterNumber.value = match[1];
+
+      updateChapterNumberSuggestion();
       scheduleSave();
-      if (!silent) showToast(`Chapter ${match[1]} terdeteksi.`);
+
+      if (!silent) {
+        showToast(`Chapter ${match[1]} terdeteksi.`);
+      }
+
       return Number(match[1]);
     }
   }
 
-  if (!silent) showToast("Nomor chapter tidak ditemukan.");
+  updateChapterNumberSuggestion();
+
+  if (!silent) {
+    showToast("Nomor chapter tidak ditemukan.");
+  }
+
   return null;
 }
 
@@ -290,21 +408,101 @@ function getNumber() {
   return match ? Number(match[0]) : null;
 }
 
-// Pastikan setiap chapter yang disimpan memiliki judul Chapter di paling atas.
-// Jika cleanHtml() sudah menemukan judul Chapter/Bab/Ch., judul tersebut
-// dipertahankan agar judul asli tidak digandakan. Jika tidak ada, buat
-// heading otomatis berdasarkan nomor chapter yang dipilih user.
+function hasRecognizedChapterHeading() {
+  const text = getPlainText(editor.innerHTML);
+
+  const lines = text
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const patterns = [
+    /^(?:BAB|Chapter|Ch\.?)\s*\d+\b/i,
+    /^\d+\s*[:.\-–—]\s*\S+/i,
+    /^(?:prolog|prologue|epilog|epilogue)\b/i
+  ];
+
+  if (
+    lines.some(line =>
+      patterns.some(pattern => pattern.test(line))
+    )
+  ) {
+    return true;
+  }
+
+  const source = editor.innerHTML || editor.textContent || "";
+
+  return [
+    /<h[1-6][^>]*>\s*(?:BAB|Chapter|Ch\.)\s+(\d+)\b/i,
+    /^(?:BAB|Chapter|Ch\.)\s+(\d+)\b/im,
+    /\b(?:BAB|Chapter)\s+(\d+)\b/i,
+    /\bCh\.\s*(\d+)\b/i
+  ].some(pattern => pattern.test(source));
+}
+
+function getNextChapterSuggestion() {
+  if (
+    Number.isInteger(state.lastAddedChapterNumber) &&
+    state.lastAddedChapterNumber >= 0
+  ) {
+    return state.lastAddedChapterNumber + 1;
+  }
+
+  const numbers = Object.keys(state.chapters)
+    .map(Number)
+    .filter(Number.isFinite);
+
+  return numbers.length
+    ? Math.max(...numbers) + 1
+    : 1;
+}
+
+function updateChapterNumberSuggestion() {
+  if (!chapterNumberSuggestion) return;
+
+  const text = getPlainText(editor.innerHTML);
+
+  if (
+    !text ||
+    chapterNumber.value.trim() !== "" ||
+    hasRecognizedChapterHeading()
+  ) {
+    chapterNumberSuggestion.hidden = true;
+    return;
+  }
+
+  const number = getNextChapterSuggestion();
+
+  chapterNumberSuggestion.textContent =
+    `↑ ${number} · Gunakan saran`;
+
+  chapterNumberSuggestion.dataset.number = String(number);
+  chapterNumberSuggestion.hidden = false;
+}
+
+/* =========================================================
+   KONTEN CHAPTER
+   ========================================================= */
+
 function ensureChapterHeading(content, number) {
-  const hasChapterHeading = /<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s+\d+\b/i.test(content);
+  const hasChapterHeading =
+    /<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s+\d+\b/i.test(content);
 
   if (hasChapterHeading) return content;
 
-  return `<h2 style="text-align: center;">Chapter ${number}</h2>\n<br>\n${content}`;
+  return (
+    `<h2 style="text-align: center;">Chapter ${number}</h2>\n` +
+    `<br>\n${content}`
+  );
 }
 
 function addChapter() {
   let number = getNumber();
-  if (number == null) number = detectChapter(true);
+
+  if (number == null) {
+    number = detectChapter(true);
+  }
 
   if (number == null) {
     showToast("Nomor chapter tidak ditemukan.");
@@ -312,54 +510,76 @@ function addChapter() {
   }
 
   const raw = editor.innerHTML.trim();
+
   if (!raw) {
     showToast("Input chapter masih kosong.");
     return;
   }
 
   let content = cleanHtml(raw);
+
   if (!content) {
     showToast("Tidak ada konten setelah dibersihkan.");
     return;
   }
 
   content = ensureChapterHeading(content, number);
+
   state.chapters[number] = content;
+  state.lastAddedChapterNumber = number;
   state.selected = number;
   state.previewed = null;
+
   chapterNumber.value = "";
   editor.innerHTML = "";
+
   updateEditorStats();
-  editorStatus.textContent = `✓ Chapter ${number} ditambahkan. Input siap untuk chapter berikutnya.`;
+  updateChapterNumberSuggestion();
+
+  editorStatus.textContent =
+    `✓ Chapter ${number} ditambahkan. Input siap untuk chapter berikutnya.`;
+
   renderList();
   scheduleSave();
+
   requestAnimationFrame(() => editor.focus());
 }
 
 function updateChapter() {
   const number = getNumber();
-  if (number == null || !Object.prototype.hasOwnProperty.call(state.chapters, number)) {
+
+  if (
+    number == null ||
+    !Object.prototype.hasOwnProperty.call(state.chapters, number)
+  ) {
     showToast("Pilih chapter yang ingin diperbarui.");
     return;
   }
 
   const raw = editor.innerHTML.trim();
+
   if (!raw) {
     showToast("Input chapter masih kosong.");
     return;
   }
 
   let content = cleanHtml(raw);
+
   if (!content) {
     showToast("Tidak ada konten setelah dibersihkan.");
     return;
   }
 
   content = ensureChapterHeading(content, number);
+
   state.chapters[number] = content;
   state.selected = number;
+
   updateEditorStats();
-  editorStatus.textContent = `✓ Chapter ${number} diperbarui.`;
+
+  editorStatus.textContent =
+    `✓ Chapter ${number} diperbarui.`;
+
   renderList();
   scheduleSave();
 }
@@ -367,82 +587,120 @@ function updateChapter() {
 function clearDraft() {
   chapterNumber.value = "";
   editor.innerHTML = "";
+
   updateEditorStats();
+  updateChapterNumberSuggestion();
+
   state.selected = null;
-  editorStatus.textContent = "Input dibersihkan. Siap untuk chapter berikutnya.";
+
+  editorStatus.textContent =
+    "Input dibersihkan. Siap untuk chapter berikutnya.";
+
   scheduleSave();
 }
 
+/* =========================================================
+   HAPUS CHAPTER
+   ========================================================= */
 
 async function deleteChapter() {
-  const numbers = [...selectedChapters]
+  const numbers = [...deletionSelection]
     .filter(number =>
       Object.prototype.hasOwnProperty.call(state.chapters, number)
     )
     .sort((a, b) => a - b);
 
   if (!numbers.length) {
-    showToast("Pilih chapter yang ingin dihapus.");
+    showToast("Centang chapter yang ingin dihapus terlebih dahulu.");
     return;
   }
 
-  const chapterNames = numbers
+  const chapterLabels = numbers
     .map(number => `Chapter ${number}`)
     .join(", ");
 
-  if (!confirm(
-    `Hapus ${numbers.length} chapter berikut?\n\n${chapterNames}`
-  )) {
+  if (
+    !confirm(
+      `Hapus ${numbers.length} chapter berikut?\n\n${chapterLabels}`
+    )
+  ) {
     return;
   }
 
   for (const number of numbers) {
     delete state.chapters[number];
+    deletionSelection.delete(number);
   }
 
-  selectedChapters.clear();
-  state.selected = null;
-  state.previewed = null;
-
-  closePreview();
-
-  const inputNumber = getNumber();
-  if (inputNumber != null && numbers.includes(inputNumber)) {
+  if (
+    state.selected != null &&
+    numbers.includes(Number(state.selected))
+  ) {
     clearDraft();
   }
 
+  if (
+    state.previewed != null &&
+    numbers.includes(Number(state.previewed))
+  ) {
+    closePreview();
+  }
+
   renderList();
+
   await saveState(state);
 
   showToast(`${numbers.length} chapter berhasil dihapus.`);
 }
 
-
 async function clearAll() {
   if (!Object.keys(state.chapters).length) return;
-  if (!confirm("Hapus semua chapter yang tersimpan?")) return;
+
+  if (!confirm("Hapus semua chapter yang tersimpan?")) {
+    return;
+  }
 
   state.chapters = {};
   state.selected = null;
   state.previewed = null;
+  state.lastAddedChapterNumber = null;
+
+  deletionSelection.clear();
+
   clearDraft();
   closePreview();
   renderList();
+
   await saveState(state);
+
   showToast("Semua chapter dihapus.");
 }
+
+/* =========================================================
+   TEMPEL DAN IMPOR
+   ========================================================= */
 
 async function pasteClipboard() {
   try {
     if (navigator.clipboard?.read) {
       const items = await navigator.clipboard.read();
+
       for (const item of items) {
         if (item.types.includes("text/html")) {
           const blob = await item.getType("text/html");
+
           editor.focus();
-          document.execCommand("insertHTML", false, await blob.text());
+
+          document.execCommand(
+            "insertHTML",
+            false,
+            await blob.text()
+          );
+
           scheduleSave();
           updateEditorStats();
+          updateChapterNumberSuggestion();
+
           showToast("HTML berformat berhasil ditempel.");
           return;
         }
@@ -450,34 +708,63 @@ async function pasteClipboard() {
     }
 
     const text = await navigator.clipboard.readText();
+
     editor.focus();
+
     document.execCommand("insertText", false, text);
+
     scheduleSave();
     updateEditorStats();
+    updateChapterNumberSuggestion();
+
     showToast("Teks berhasil ditempel.");
   } catch (error) {
     console.error(error);
-    showToast("Clipboard tidak dapat diakses. Gunakan Ctrl+V sebagai alternatif.");
+
+    showToast(
+      "Clipboard tidak dapat diakses. Gunakan Ctrl+V sebagai alternatif."
+    );
   }
 }
 
 function importTxt(file) {
   if (!file) return;
+
   const reader = new FileReader();
+
   reader.onload = () => {
     editor.innerHTML = String(reader.result || "");
+
     updateEditorStats();
-    const numberMatch = file.name.match(/(?:chapter|ch)[\s_-]*(\d+)/i);
-    if (numberMatch) chapterNumber.value = numberMatch[1];
-    else detectChapter(true);
+
+    const numberMatch = file.name.match(
+      /(?:chapter|ch)[\s_-]*(\d+)/i
+    );
+
+    if (numberMatch) {
+      chapterNumber.value = numberMatch[1];
+    } else {
+      detectChapter(true);
+    }
+
+    updateChapterNumberSuggestion();
     scheduleSave();
+
     showToast("TXT berhasil diimpor.");
   };
+
   reader.readAsText(file, "UTF-8");
 }
 
+/* =========================================================
+   GENERATE ZIP
+   ========================================================= */
+
 async function generateZip() {
-  const numbers = Object.keys(state.chapters).map(Number).sort((a, b) => a - b);
+  const numbers = Object.keys(state.chapters)
+    .map(Number)
+    .sort((a, b) => a - b);
+
   if (!numbers.length) {
     showToast("Belum ada chapter.");
     return;
@@ -486,106 +773,222 @@ async function generateZip() {
   state.novelName = novelName.value;
   state.chapterNumber = chapterNumber.value;
   state.draft = editor.innerHTML;
+
   await saveState(state);
 
   try {
-    const chapters = numbers.map(number => ({ number, content: state.chapters[number] }));
+    const chapters = numbers.map(number => ({
+      number,
+      content: state.chapters[number]
+    }));
+
     const blob = await createMadaraZip(chapters);
     const fileName = getZipFileName(numbers);
 
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+
     link.href = url;
     link.download = fileName;
+
     document.body.appendChild(link);
     link.click();
     link.remove();
+
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+
     showToast("ZIP berhasil dibuat.");
   } catch (error) {
     console.error(error);
+
     showToast(`Gagal membuat ZIP: ${error.message}`);
   }
 }
+
+/* =========================================================
+   INISIALISASI
+   ========================================================= */
 
 async function init() {
   const saved = await loadState();
 
   if (saved) {
     Object.assign(state, saved);
+
     novelName.value = state.novelName || "";
     chapterNumber.value = state.chapterNumber || "";
     editor.innerHTML = state.draft || "";
   }
 
+  if (!Number.isInteger(state.lastAddedChapterNumber)) {
+    const savedNumbers = Object.keys(state.chapters)
+      .map(Number)
+      .filter(Number.isFinite);
+
+    state.lastAddedChapterNumber = savedNumbers.length
+      ? Math.max(...savedNumbers)
+      : null;
+  }
+
   renderList();
   updateEditorStats();
+  updateChapterNumberSuggestion();
+
   setActiveTab("input");
+
   storageStatus.textContent = "● Tersimpan otomatis";
 }
+
+/* =========================================================
+   EVENT LISTENERS
+   ========================================================= */
 
 novelName.addEventListener("input", () => {
   updateProjectStatus();
   scheduleSave();
 });
-chapterNumber.addEventListener("input", scheduleSave);
-editor.addEventListener("input", () => {
-  updateEditorStats();
+
+chapterNumber.addEventListener("input", () => {
+  updateChapterNumberSuggestion();
   scheduleSave();
 });
 
-tabButtons[0].addEventListener("click", () => setActiveTab("input"));
-tabButtons[1].addEventListener("click", () => setActiveTab("chapters"));
-tabButtons[2].addEventListener("click", () => setActiveTab("project"));
-$("goToChaptersBtn").addEventListener("click", () => setActiveTab("chapters"));
+editor.addEventListener("input", () => {
+  updateEditorStats();
+  updateChapterNumberSuggestion();
+  scheduleSave();
+});
+
+if (chapterNumberSuggestion) {
+  chapterNumberSuggestion.addEventListener("click", () => {
+    if (chapterNumberSuggestion.hidden) return;
+
+    chapterNumber.value =
+      chapterNumberSuggestion.dataset.number || "";
+
+    chapterNumberSuggestion.hidden = true;
+
+    scheduleSave();
+    chapterNumber.focus();
+  });
+}
+
+tabButtons[0].addEventListener("click", () => {
+  setActiveTab("input");
+});
+
+tabButtons[1].addEventListener("click", () => {
+  setActiveTab("chapters");
+});
+
+tabButtons[2].addEventListener("click", () => {
+  setActiveTab("project");
+});
+
+$("goToChaptersBtn").addEventListener("click", () => {
+  setActiveTab("chapters");
+});
 
 $("pasteBtn").addEventListener("click", pasteClipboard);
-$("detectChapterBtn").addEventListener("click", () => detectChapter(false));
-$("addChapterBtn").addEventListener("click", addChapter);
-$("updateChapterBtn").addEventListener("click", updateChapter);
-$("clearDraftBtn").addEventListener("click", clearDraft);
-$("deleteChapterBtn").addEventListener("click", deleteChapter);
-selectAllChapters.addEventListener("change", () => {
-  const numbers = Object.keys(state.chapters).map(Number);
 
-  if (selectAllChapters.checked) {
-    numbers.forEach(number => selectedChapters.add(number));
+$("detectChapterBtn").addEventListener("click", () => {
+  detectChapter(false);
+});
+
+$("addChapterBtn").addEventListener("click", addChapter);
+
+$("updateChapterBtn").addEventListener("click", updateChapter);
+
+$("clearDraftBtn").addEventListener("click", clearDraft);
+
+$("deleteChapterBtn").addEventListener("click", deleteChapter);
+
+/*
+ * PERBAIKAN UTAMA:
+ * ID yang digunakan harus sama dengan index.html:
+ * id="selectAllChapters"
+ *
+ * Saat dicentang, semua nomor chapter dimasukkan ke Set.
+ * Saat dilepas, seluruh pilihan dibersihkan.
+ * renderList() kemudian memperbarui checkbox dan penghitung.
+ */
+$("selectAllChapters").addEventListener("change", event => {
+  if (event.target.checked) {
+    for (const number of Object.keys(state.chapters).map(Number)) {
+      deletionSelection.add(number);
+    }
   } else {
-    selectedChapters.clear();
+    deletionSelection.clear();
   }
 
   renderList();
 });
+
 $("clearAllBtn").addEventListener("click", clearAll);
+
 $("generateZipBtn").addEventListener("click", generateZip);
-$("importTxtBtn").addEventListener("click", () => $("txtFileInput").click());
-$("txtFileInput").addEventListener("change", event => importTxt(event.target.files[0]));
-$("closePreviewBtn").addEventListener("click", closePreview);
-$("previewCloseActionBtn").addEventListener("click", closePreview);
-$("previewEditBtn").addEventListener("click", editPreviewedChapter);
-previewModal.addEventListener("click", event => {
-  if (event.target.hasAttribute("data-close-preview")) closePreview();
+
+$("importTxtBtn").addEventListener("click", () => {
+  $("txtFileInput").click();
 });
+
+$("txtFileInput").addEventListener("change", event => {
+  importTxt(event.target.files[0]);
+});
+
+$("closePreviewBtn").addEventListener("click", closePreview);
+
+$("previewCloseActionBtn").addEventListener("click", closePreview);
+
+$("previewEditBtn").addEventListener("click", editPreviewedChapter);
+
+previewModal.addEventListener("click", event => {
+  if (event.target.hasAttribute("data-close-preview")) {
+    closePreview();
+  }
+});
+
 document.addEventListener("keydown", event => {
-  if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && !previewModal.hidden) return;
-  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.key === "Enter" &&
+    !previewModal.hidden
+  ) {
+    return;
+  }
+
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.key === "Enter"
+  ) {
     event.preventDefault();
     addChapter();
     return;
   }
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.key.toLowerCase() === "s"
+  ) {
     event.preventDefault();
     generateZip();
     return;
   }
-  if (event.key === "Escape" && !previewModal.hidden) closePreview();
+
+  if (event.key === "Escape" && !previewModal.hidden) {
+    closePreview();
+  }
 });
 
 window.addEventListener("beforeunload", () => {
   state.novelName = novelName.value;
   state.chapterNumber = chapterNumber.value;
   state.draft = editor.innerHTML;
-  localStorage.setItem("chapter_collector_backup_v2", JSON.stringify(state));
+
+  localStorage.setItem(
+    "chapter_collector_backup_v2",
+    JSON.stringify(state)
+  );
 });
 
 init();

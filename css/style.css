@@ -150,78 +150,66 @@ input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(23, 105, 
   overflow: auto;
   padding: 10px;
 }
-
-
-.list-selection-actions {
+.chapter-selection-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 9px 14px;
   border-bottom: 1px solid var(--border);
-  font-size: 13px;
+  background: #fafbfc;
 }
-
-.list-selection-actions label {
-  display: flex;
+.select-all-label {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
 }
-
-#selectedChapterCount {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.chapter-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 7px;
-}
-
-.chapter-select-checkbox,
-#selectAllChapters {
+.select-all-label input,
+.chapter-select-checkbox {
   width: 17px;
   height: 17px;
-  flex: 0 0 auto;
-  cursor: pointer;
+  min-height: 17px;
+  margin: 0;
+  padding: 0;
   accent-color: var(--primary);
+  cursor: pointer;
 }
-
-.chapter-row .chapter-item {
-  flex: 1;
-  width: auto;
-  min-width: 0;
-  margin-bottom: 0;
-}
-
-#deleteChapterBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-
+.selected-chapter-count { color: var(--muted); font-size: 12px; }
 .chapter-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   margin-bottom: 7px;
-  padding: 12px 14px;
+  padding: 5px 10px;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: var(--text);
-  cursor: pointer;
-  text-align: left;
-  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+  transition: background .15s ease, border-color .15s ease;
 }
 .chapter-item:hover { background: #f1f4f7; border-color: #d9dee3; }
-.chapter-item:active { transform: translateY(1px); }
 .chapter-item.previewing { background: #e8f0ff; border-color: #b9cff5; }
+.chapter-item.deletion-selected { background: #fff1f1; border-color: #f1bcbc; }
+.chapter-preview-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  padding: 7px 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.chapter-preview-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
 .chapter-item-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .chapter-item-main strong { font-size: 14px; }
 .chapter-item-main small { color: var(--muted); font-size: 11px; }
@@ -721,8 +709,11 @@ body {
   .chapter-item {
     min-height: 55px;
     margin-bottom: 5px;
-    padding: 9px 10px;
+    padding: 5px 8px;
   }
+
+  .chapter-preview-button { padding: 5px 2px; }
+  .chapter-selection-toolbar { padding: 7px 10px; }
 
   .chapter-item-main strong {
     font-size: 13px;
@@ -874,4 +865,129 @@ body {
   .tab-btn { min-height: 37px; }
   #panelInput .format-note { display: none; }
   .editor-actions { margin-top: 6px; }
+}
+
+
+/* Saran nomor chapter otomatis */
+.chapter-number-field { position: relative; }
+.chapter-number-suggestion {
+  position: absolute;
+  top: -9px;
+  right: 0;
+  z-index: 5;
+  transform: translateY(-100%);
+  width: auto;
+  min-height: 27px;
+  padding: 5px 10px;
+  border: 1px solid #b8d3ff;
+  border-radius: 7px;
+  background: #eaf2ff;
+  color: #174ea6;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(23, 105, 224, 0.12);
+}
+.chapter-number-suggestion:hover { background: #d9e8ff; }
+.chapter-number-suggestion[hidden] { display: none !important; }
+
+
+/* FIX LAYOUT DAFTAR CHAPTER */
+#chapterList .chapter-item {
+  display:flex; align-items:center; justify-content:flex-start; gap:12px;
+  width:100%; box-sizing:border-box; padding:8px 12px; margin:0 0 7px;
+  border:1px solid #e1e6eb; border-radius:9px; background:#fff;
+}
+#chapterList .chapter-select-checkbox {
+  flex:0 0 17px; width:17px; min-width:17px; margin:0;
+}
+#chapterList .chapter-preview-button {
+  display:flex; flex:1 1 auto; width:auto; min-width:0;
+  align-items:center; justify-content:space-between; gap:12px;
+  padding:8px 10px; border:0; border-radius:6px;
+  background:transparent; color:inherit; text-align:left; box-shadow:none;
+}
+#chapterList .chapter-preview-button:hover { background:#f3f6fa; }
+#chapterList .chapter-item-main {
+  display:flex; flex:1 1 auto; min-width:0; flex-direction:column;
+  align-items:flex-start; gap:3px;
+}
+#chapterList .chapter-item-main strong,
+#chapterList .chapter-item-main small { display:block; text-align:left; }
+#chapterList .chapter-item-arrow { flex:0 0 auto; }
+#chapterList .chapter-item.previewing { background:#f5f8ff; border-color:#c8d8f8; }
+#chapterList .chapter-item.deletion-selected { background:#fff5f5; border-color:#efb7b7; }
+
+
+/* =========================================================
+   FIX TOOLBAR PILIH CHAPTER
+   Mendukung markup .chapter-selection-toolbar maupun
+   .list-selection-actions agar checkbox tidak melebar/bergeser.
+   ========================================================= */
+.chapter-selection-toolbar,
+.list-selection-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.select-all-label,
+.list-selection-actions label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.select-all-label input[type="checkbox"],
+.list-selection-actions input[type="checkbox"],
+.chapter-select-checkbox {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  display: inline-block;
+  flex: 0 0 17px;
+  width: 17px;
+  min-width: 17px;
+  max-width: 17px;
+  height: 17px;
+  min-height: 17px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--primary);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.selected-chapter-count,
+#selectedChapterCount {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .chapter-selection-toolbar,
+  .list-selection-actions {
+    min-height: 48px;
+    padding: 8px 10px;
+  }
 }
