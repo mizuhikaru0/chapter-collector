@@ -23,6 +23,10 @@ const previewEditBtn = $("previewEditBtn");
 const tabButtons = [$("tabInput"), $("tabChapters"), $("tabProject")];
 const tabPanels = { input: $("panelInput"), chapters: $("panelChapters"), project: $("panelProject") };
 const tabChapterCount = $("tabChapterCount");
+const selectAllChapters = $("selectAllChapters");
+const selectedChapterCount = $("selectedChapterCount");
+
+const selectedChapters = new Set();
 
 const state = {
   novelName: "",
@@ -116,28 +120,71 @@ function scheduleSave() {
   }, 250);
 }
 
+
 function renderList() {
-  const numbers = Object.keys(state.chapters).map(Number).sort((a, b) => a - b);
+  const numbers = Object.keys(state.chapters)
+    .map(Number)
+    .sort((a, b) => a - b);
+
   chapterList.innerHTML = "";
+
+  // Bersihkan pilihan yang nomor chapternya sudah tidak ada.
+  for (const number of selectedChapters) {
+    if (!Object.prototype.hasOwnProperty.call(state.chapters, number)) {
+      selectedChapters.delete(number);
+    }
+  }
+
   tabChapterCount.textContent = String(numbers.length);
   tabChapterCount.classList.toggle("has-items", numbers.length > 0);
+
   chapterCount.textContent = numbers.length
-    ? (numbers.length === 1 ? "1 chapter" : `${numbers.length} chapter · ${numbers[0]}–${numbers[numbers.length - 1]}`)
+    ? (numbers.length === 1
+        ? "1 chapter"
+        : `${numbers.length} chapter · ${numbers[0]}–${numbers[numbers.length - 1]}`)
     : "0 chapter";
+
   updateProjectStatus();
 
   if (!numbers.length) {
-    chapterList.innerHTML = `<div class="empty-list">Belum ada chapter.<br><small>Chapter yang ditambahkan akan muncul di sini.</small></div>`;
+    chapterList.innerHTML = `
+      <div class="empty-list">
+        Belum ada chapter.<br>
+        <small>Chapter yang ditambahkan akan muncul di sini.</small>
+      </div>
+    `;
+    updateChapterSelectionControls(numbers);
     return;
   }
 
   for (const number of numbers) {
+    const row = document.createElement("div");
+    row.className = "chapter-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "chapter-select-checkbox";
+    checkbox.checked = selectedChapters.has(number);
+    checkbox.setAttribute("aria-label", `Pilih Chapter ${number}`);
+
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        selectedChapters.add(number);
+      } else {
+        selectedChapters.delete(number);
+      }
+
+      updateChapterSelectionControls(numbers);
+    });
+
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `chapter-item${state.previewed === number ? " previewing" : ""}`;
+    button.className =
+      `chapter-item${state.previewed === number ? " previewing" : ""}`;
 
     const text = getPlainText(state.chapters[number]);
     const wordCount = countWords(text);
+
     button.innerHTML = `
       <span class="chapter-item-main">
         <strong>Chapter ${number}</strong>
@@ -145,10 +192,31 @@ function renderList() {
       </span>
       <span class="chapter-item-arrow">›</span>
     `;
+
     button.addEventListener("click", () => openPreview(number));
-    chapterList.appendChild(button);
+
+    row.append(checkbox, button);
+    chapterList.appendChild(row);
   }
+
+  updateChapterSelectionControls(numbers);
 }
+
+function updateChapterSelectionControls(numbers) {
+  const selectedCount = numbers.filter(number =>
+    selectedChapters.has(number)
+  ).length;
+
+  selectedChapterCount.textContent = `${selectedCount} dipilih`;
+  $("deleteChapterBtn").disabled = selectedCount === 0;
+
+  selectAllChapters.checked =
+    numbers.length > 0 && selectedCount === numbers.length;
+
+  selectAllChapters.indeterminate =
+    selectedCount > 0 && selectedCount < numbers.length;
+}
+
 
 function openPreview(number) {
   const content = state.chapters[number];
@@ -305,23 +373,50 @@ function clearDraft() {
   scheduleSave();
 }
 
+
 async function deleteChapter() {
-  const number = state.selected ?? state.previewed ?? getNumber();
-  if (number == null || !Object.prototype.hasOwnProperty.call(state.chapters, number)) {
+  const numbers = [...selectedChapters]
+    .filter(number =>
+      Object.prototype.hasOwnProperty.call(state.chapters, number)
+    )
+    .sort((a, b) => a - b);
+
+  if (!numbers.length) {
     showToast("Pilih chapter yang ingin dihapus.");
     return;
   }
 
-  if (!confirm(`Hapus Chapter ${number}?`)) return;
-  delete state.chapters[number];
+  const chapterNames = numbers
+    .map(number => `Chapter ${number}`)
+    .join(", ");
+
+  if (!confirm(
+    `Hapus ${numbers.length} chapter berikut?\n\n${chapterNames}`
+  )) {
+    return;
+  }
+
+  for (const number of numbers) {
+    delete state.chapters[number];
+  }
+
+  selectedChapters.clear();
   state.selected = null;
   state.previewed = null;
-  clearDraft();
+
   closePreview();
+
+  const inputNumber = getNumber();
+  if (inputNumber != null && numbers.includes(inputNumber)) {
+    clearDraft();
+  }
+
   renderList();
   await saveState(state);
-  showToast(`Chapter ${number} dihapus.`);
+
+  showToast(`${numbers.length} chapter berhasil dihapus.`);
 }
+
 
 async function clearAll() {
   if (!Object.keys(state.chapters).length) return;
@@ -450,6 +545,17 @@ $("addChapterBtn").addEventListener("click", addChapter);
 $("updateChapterBtn").addEventListener("click", updateChapter);
 $("clearDraftBtn").addEventListener("click", clearDraft);
 $("deleteChapterBtn").addEventListener("click", deleteChapter);
+selectAllChapters.addEventListener("change", () => {
+  const numbers = Object.keys(state.chapters).map(Number);
+
+  if (selectAllChapters.checked) {
+    numbers.forEach(number => selectedChapters.add(number));
+  } else {
+    selectedChapters.clear();
+  }
+
+  renderList();
+});
 $("clearAllBtn").addEventListener("click", clearAll);
 $("generateZipBtn").addEventListener("click", generateZip);
 $("importTxtBtn").addEventListener("click", () => $("txtFileInput").click());

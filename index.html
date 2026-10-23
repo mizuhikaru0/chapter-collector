@@ -36,8 +36,25 @@
     <section class="tab-panel" id="panelChapters" role="tabpanel" aria-labelledby="tabChapters" hidden>
       <section class="chapter-panel card">
         <div class="panel-heading"><div><h2>📋 Chapter Sementara</h2><span id="chapterCount">0 chapter</span></div><span class="panel-hint">Klik chapter untuk membuka preview · Edit dari popup</span></div>
-        <div id="chapterList" class="chapter-list" aria-live="polite"></div>
-        <div class="list-actions"><button type="button" class="btn btn-danger" id="deleteChapterBtn">🗑 Hapus</button><button type="button" class="btn btn-secondary" id="clearAllBtn">🧹 Hapus Semua</button></div>
+        
+<div class="list-selection-actions">
+  <label>
+    <input type="checkbox" id="selectAllChapters">
+    Pilih Semua
+  </label>
+  <span id="selectedChapterCount">0 dipilih</span>
+</div>
+
+<div id="chapterList" class="chapter-list" aria-live="polite"></div>
+
+<div class="list-actions">
+  <button type="button" class="btn btn-danger" id="deleteChapterBtn" disabled>
+    🗑 Hapus Dipilih
+  </button>
+  <button type="button" class="btn btn-secondary" id="clearAllBtn">
+    🧹 Hapus Semua
+  </button>
+</div>
       </section>
     </section>
 
