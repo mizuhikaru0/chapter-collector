@@ -40,6 +40,7 @@ const state = {
 };
 
 let saveTimer = null;
+let editingChapterNumber = null;
 const deletionSelection = new Set();
 
 function setActiveTab(name) {
@@ -347,6 +348,7 @@ function editPreviewedChapter() {
   }
 
   state.selected = number;
+  editingChapterNumber = number;
   chapterNumber.value = number;
   editor.innerHTML = state.chapters[number];
 
@@ -528,6 +530,7 @@ function addChapter() {
   state.chapters[number] = content;
   state.lastAddedChapterNumber = number;
   state.selected = number;
+  editingChapterNumber = null;
   state.previewed = null;
 
   chapterNumber.value = "";
@@ -546,13 +549,21 @@ function addChapter() {
 }
 
 function updateChapter() {
-  const number = getNumber();
+  // Saat mode edit aktif, identitas chapter berasal dari chapter yang dibuka,
+  // bukan dari nomor yang mungkin sudah diubah pengguna di kolom input.
+  const originalNumber = editingChapterNumber ?? state.selected;
+  const targetNumber = getNumber();
 
   if (
-    number == null ||
-    !Object.prototype.hasOwnProperty.call(state.chapters, number)
+    originalNumber == null ||
+    !Object.prototype.hasOwnProperty.call(state.chapters, originalNumber)
   ) {
-    showToast("Pilih chapter yang ingin diperbarui.");
+    showToast("Buka chapter dari daftar lalu tekan Edit Chapter sebelum Update.");
+    return;
+  }
+
+  if (targetNumber == null) {
+    showToast("Isi nomor chapter yang valid terlebih dahulu.");
     return;
   }
 
@@ -570,18 +581,48 @@ function updateChapter() {
     return;
   }
 
-  content = ensureChapterHeading(content, number);
+  // Jangan menimpa chapter lain secara tidak sengaja jika nomor tujuan sudah ada.
+  if (
+    targetNumber !== originalNumber &&
+    Object.prototype.hasOwnProperty.call(state.chapters, targetNumber)
+  ) {
+    showToast(`Chapter ${targetNumber} sudah ada. Pilih nomor lain atau edit chapter tersebut.`);
+    return;
+  }
 
-  state.chapters[number] = content;
-  state.selected = number;
+  // Jika nomor chapter diubah, sesuaikan nomor pada heading yang sudah ada.
+  // Judul tambahan setelah nomor (mis. ": The Beginning") tetap dipertahankan.
+  content = content.replace(
+    /(<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s*)\d+(\b[^<]*<\/h[1-6]>)/i,
+    `$1${targetNumber}$2`
+  );
+  content = ensureChapterHeading(content, targetNumber);
+
+  if (targetNumber !== originalNumber) {
+    delete state.chapters[originalNumber];
+    deletionSelection.delete(originalNumber);
+  }
+
+  state.chapters[targetNumber] = content;
+  state.selected = targetNumber;
+  editingChapterNumber = targetNumber;
+  chapterNumber.value = String(targetNumber);
 
   updateEditorStats();
+  updateChapterNumberSuggestion();
 
   editorStatus.textContent =
-    `✓ Chapter ${number} diperbarui.`;
+    targetNumber === originalNumber
+      ? `✓ Chapter ${targetNumber} diperbarui.`
+      : `✓ Chapter ${originalNumber} dipindahkan ke Chapter ${targetNumber} dan diperbarui.`;
 
   renderList();
   scheduleSave();
+  showToast(
+    targetNumber === originalNumber
+      ? `Chapter ${targetNumber} berhasil diperbarui.`
+      : `Chapter berhasil diubah menjadi Chapter ${targetNumber}.`
+  );
 }
 
 function clearDraft() {
@@ -592,6 +633,7 @@ function clearDraft() {
   updateChapterNumberSuggestion();
 
   state.selected = null;
+  editingChapterNumber = null;
 
   editorStatus.textContent =
     "Input dibersihkan. Siap untuk chapter berikutnya.";
