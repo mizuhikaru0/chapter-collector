@@ -1520,3 +1520,257 @@ input:focus, select:focus, textarea:focus {
   .editor-resize-handle { height: 24px; min-height: 24px; flex-basis: 24px; margin: 3px 0 5px; }
   .editor-resize-handle span { width: 64px; height: 5px; opacity: .75; }
 }
+/* Memperbaiki posisi editor agar simetris di layar HP */
+@media (max-width: 700px) {
+  .editor-panel {
+    width: 100%;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .editor-panel .editor-toolbar,
+  .editor-panel .editor-wrap,
+  .editor-panel .editor-info,
+  .editor-panel .editor-resize-handle,
+  .editor-panel .editor-actions {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .editor-panel .rich-editor {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .editor-panel,
+  .editor-panel * {
+    box-sizing: border-box;
+  }
+}
+
+
+/* FIX V2: betulkan wadah utama di HP, bukan hanya panel editor */
+@media (max-width: 700px) {
+  .app-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #panelInput,
+  #panelInput .editor-panel,
+  #panelInput .format-note {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  #panelInput .editor-panel {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  #panelInput .chapter-meta,
+  #panelInput .editor-toolbar,
+  #panelInput .editor-wrap,
+  #panelInput .editor-resize-handle,
+  #panelInput .editor-info,
+  #panelInput .editor-actions {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  #panelInput .rich-editor {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+
+/* =========================================================
+   FINAL FIX — scroll halaman + layout mobile tetap simetris
+   Diletakkan paling akhir agar mengalahkan aturan lama yang bentrok.
+   ========================================================= */
+
+/* Gulir utama pada halaman, bukan di dalam editor/panel. */
+html {
+  width: 100%;
+  min-height: 100%;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
+  height: auto !important;
+  margin: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-shell {
+  width: min(1500px, calc(100% - 28px));
+  max-width: 1500px;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 12px auto 24px !important;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+}
+
+/* Tab panel mengikuti tinggi kontennya; tidak memotong halaman. */
+.tab-panel,
+#panelInput,
+#panelChapters,
+#panelProject {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+#panelInput {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#panelInput .editor-panel {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  overscroll-behavior: auto !important;
+}
+
+#panelInput .editor-wrap {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  height: var(--chapter-editor-height, 360px);
+  min-height: 180px;
+  overflow: visible !important;
+}
+
+#panelInput .rich-editor {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overscroll-behavior: auto !important;
+  touch-action: pan-y;
+}
+
+#panelChapters .chapter-panel {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+#panelChapters .chapter-list {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+#panelProject {
+  padding-bottom: 12px;
+}
+
+/* Pertahankan navigasi bawah di HP, tetapi pusatkan seluruh konten. */
+@media (max-width: 700px) {
+  .app-shell {
+    width: calc(100% - 16px) !important;
+    max-width: 560px !important;
+    margin: 8px auto calc(var(--mobile-nav-height, 64px) + 24px + env(safe-area-inset-bottom)) !important;
+    padding: 0 0 calc(var(--mobile-nav-height, 64px) + 8px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .app-header,
+  .tabs,
+  .tab-panel,
+  #panelInput,
+  #panelChapters,
+  #panelProject,
+  #panelInput .editor-panel,
+  #panelInput .format-note {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #panelInput .editor-panel {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 12px;
+  }
+
+  #panelInput .editor-toolbar,
+  #panelInput .editor-wrap,
+  #panelInput .editor-info,
+  #panelInput .editor-resize-handle,
+  #panelInput .editor-actions,
+  #panelInput .rich-editor {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Jangan biarkan editor menjadi area scroll bersarang. */
+  #panelInput .rich-editor {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    touch-action: pan-y;
+  }
+
+  #panelChapters .chapter-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Tab navigasi tetap menempel di bawah layar HP. */
+  .tabs {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 900;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell {
+    width: calc(100% - 12px) !important;
+  }
+
+  .tabs {
+    left: 6px !important;
+    right: 6px !important;
+  }
+}
+
+/* Desktop/tablet juga memakai scroll halaman dan shell tetap di tengah. */
+@media (min-width: 701px) {
+  .app-shell {
+    width: min(1500px, calc(100% - 28px)) !important;
+    max-width: 1500px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
