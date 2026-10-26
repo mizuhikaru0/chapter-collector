@@ -1742,3 +1742,6 @@ input:focus, select:focus, textarea:focus {
     right: 6px;
   }
 }
+#detectChapterBtn {
+  display: none !important;
+}
