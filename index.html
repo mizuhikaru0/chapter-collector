@@ -18,7 +18,7 @@
 
     <nav class="tabs" role="tablist" aria-label="Chapter Collector">
       <button type="button" class="tab-btn active" id="tabInput" role="tab" aria-selected="true" aria-controls="panelInput"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Input Chapter</span></button>
-      <button type="button" class="tab-btn" id="tabChapters" role="tab" aria-selected="false" aria-controls="panelChapters"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Chapter Sementara</span> <span class="tab-badge" id="tabChapterCount">0</span></button>
+      <button type="button" class="tab-btn" id="tabChapters" role="tab" aria-selected="false" aria-controls="panelChapters"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Chapter Terkumpul</span> <span class="tab-badge" id="tabChapterCount">0</span></button>
       <button type="button" class="tab-btn" id="tabProject" role="tab" aria-selected="false" aria-controls="panelProject"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Project &amp; ZIP</span></button>
     </nav>
 
@@ -80,7 +80,7 @@
 
     <section class="tab-panel" id="panelChapters" role="tabpanel" aria-labelledby="tabChapters" hidden>
       <section class="chapter-panel card">
-        <div class="panel-heading"><div><h2><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Chapter Sementara</span></h2><span id="chapterCount">0 chapter</span></div><span class="panel-hint">Klik chapter untuk membuka preview · Edit dari popup</span></div>
+        <div class="panel-heading"><div><h2><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Chapter Terkumpul</span></h2><span id="chapterCount">0 chapter</span></div><span class="panel-hint">Klik chapter untuk membuka preview · Edit dari popup</span></div>
         
 <div class="list-selection-actions">
   <label>
@@ -105,7 +105,7 @@
 
     <section class="tab-panel" id="panelProject" role="tabpanel" aria-labelledby="tabProject" hidden>
       <section class="project-bar card"><div class="field novel-field"><label for="novelName">Nama Novel</label><input id="novelName" type="text" placeholder="Nama novel" autocomplete="off"></div><div class="project-actions"><div class="project-status-wrap"><div id="projectStatus" class="project-status">Belum ada chapter.</div><div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div></div><button type="button" class="btn btn-primary generate-btn" id="generateZipBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v4H3zM5 8v12h14V8M10 12h4"/></svg><span>Generate ZIP</span></button></div></section>
-      <section class="project-help card"><div class="project-help-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Status Project</span></div><p>Nama ZIP dibuat otomatis berdasarkan nama novel dan rentang chapter yang tersimpan.</p><div class="zip-example">Contoh: Novel10-20.zip</div><button type="button" class="btn btn-secondary" id="goToChaptersBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Lihat Chapter Sementara</span></button></section>
+      <section class="project-help card"><div class="project-help-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Status Project</span></div><p>Nama ZIP dibuat otomatis berdasarkan nama novel dan rentang chapter yang tersimpan.</p><div class="zip-example">Contoh: Novel10-20.zip</div><button type="button" class="btn btn-secondary" id="goToChaptersBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Lihat Chapter Terkumpul</span></button></section>
     </section>
 
   <!-- POPUP PREVIEW -->
