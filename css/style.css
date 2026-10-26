@@ -1344,3 +1344,108 @@ input:focus, select:focus, textarea:focus {
   .tab-btn .ui-icon { width: 16px; height: 16px; flex-basis: 16px; }
   .btn .ui-icon { width: 17px; height: 17px; flex-basis: 17px; }
 }
+
+
+/* HEADER + EDITOR REFINEMENT — compact, calm, mobile-first */
+.app-header {
+  align-items: center;
+  gap: 18px;
+  padding: 2px 2px 12px;
+  margin-bottom: 8px;
+}
+.app-header > div:first-child { min-width: 0; }
+.app-header h1 {
+  margin: 0 0 4px;
+  gap: 10px;
+  font-size: clamp(22px, 2.2vw, 28px);
+  line-height: 1.18;
+  letter-spacing: -.035em;
+  font-weight: 760;
+}
+.app-header p {
+  max-width: 640px;
+  margin: 0;
+  color: #68727d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.storage-status {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid #dce9df;
+  border-radius: 999px;
+  background: #f4faf5;
+  color: #34734a;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+/* Keep the editor and its helper text from colliding in short viewports. */
+#panelInput .editor-panel { overflow-y: auto; overscroll-behavior: contain; }
+#panelInput .editor-wrap { flex: 1 0 auto; min-height: 240px; }
+#panelInput .rich-editor { min-height: 240px; height: 100%; }
+#panelInput .editor-placeholder {
+  max-width: calc(100% - 36px);
+  right: 18px;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+#panelInput .editor-info { flex: 0 0 auto; align-items: flex-start; }
+#panelInput .editor-info span { min-width: 0; }
+#panelInput .editor-toolbar { flex: 0 0 auto; }
+
+@media (max-width: 700px) {
+  .app-header {
+    align-items: flex-start;
+    padding: 0 2px 8px;
+    margin-bottom: 5px;
+    gap: 6px;
+  }
+  .app-header h1 {
+    font-size: 23px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  .app-header p {
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .storage-status {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font-size: 11px;
+  }
+  #panelInput .editor-panel { min-height: 0; }
+  #panelInput .editor-wrap { min-height: 240px; flex: 1 0 240px; }
+  #panelInput .rich-editor {
+    height: 100%;
+    min-height: 240px;
+    padding: 42px 15px 16px;
+    line-height: 1.7;
+  }
+  #panelInput .editor-placeholder {
+    top: 42px;
+    left: 15px;
+    right: 15px;
+    max-width: none;
+    font-size: 13px;
+  }
+  #panelInput .editor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 7px;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-header h1 { font-size: 21px; }
+  .app-header p { font-size: 11.5px; }
+  #panelInput .editor-wrap { min-height: 220px; flex-basis: 220px; }
+  #panelInput .rich-editor { min-height: 220px; }
+}
