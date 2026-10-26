@@ -1321,3 +1321,26 @@ input:focus, select:focus, textarea:focus {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* ICON SYSTEM — restrained, consistent line icons */
+.ui-icon { width: 18px; height: 18px; flex: 0 0 18px; display: inline-block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+.brand-icon { width: 27px; height: 27px; flex-basis: 27px; color: var(--primary); }
+.app-header h1, .tab-btn, .panel-heading h2, .btn, .format-note strong, .project-help-title { display: flex; align-items: center; gap: 9px; }
+.app-header h1 { gap: 10px; }
+.tab-btn { justify-content: center; }
+.btn { justify-content: center; }
+.format-note strong { display: inline-flex; margin-right: 4px; }
+.format-note .ui-icon { width: 17px; height: 17px; }
+.toolbar-btn { display: inline-flex; align-items: center; justify-content: center; }
+.toolbar-btn .ui-icon { width: 17px; height: 17px; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn .ui-icon { width: 19px; height: 19px; }
+.chapter-item-arrow { font-family: system-ui, sans-serif; }
+@media (max-width: 520px) {
+  .app-header h1 { gap: 8px; }
+  .brand-icon { width: 24px; height: 24px; flex-basis: 24px; }
+  .tab-btn { gap: 6px; }
+  .tab-btn .ui-icon { width: 16px; height: 16px; flex-basis: 16px; }
+  .btn .ui-icon { width: 17px; height: 17px; flex-basis: 17px; }
+}

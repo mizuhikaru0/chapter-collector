@@ -10,21 +10,21 @@
   <main class="app-shell">
     <header class="app-header">
       <div>
-        <h1>📚 Chapter Collector</h1>
+        <h1><svg class="ui-icon brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z"/><path d="M4 5.5v13A2.5 2.5 0 0 1 6.5 16H20M8 7h8M8 10h6"/></svg><span>Chapter Collector</span></h1>
         <p>Kumpulkan, edit, simpan, dan buat ZIP chapter untuk Madara.</p>
       </div>
       <div class="storage-status" id="storageStatus">● Tersimpan otomatis</div>
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Chapter Collector">
-      <button type="button" class="tab-btn active" id="tabInput" role="tab" aria-selected="true" aria-controls="panelInput">✍️ Input Chapter</button>
-      <button type="button" class="tab-btn" id="tabChapters" role="tab" aria-selected="false" aria-controls="panelChapters">📋 Chapter Sementara <span class="tab-badge" id="tabChapterCount">0</span></button>
-      <button type="button" class="tab-btn" id="tabProject" role="tab" aria-selected="false" aria-controls="panelProject">📦 Project & ZIP</button>
+      <button type="button" class="tab-btn active" id="tabInput" role="tab" aria-selected="true" aria-controls="panelInput"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Input Chapter</span></button>
+      <button type="button" class="tab-btn" id="tabChapters" role="tab" aria-selected="false" aria-controls="panelChapters"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Chapter Sementara</span> <span class="tab-badge" id="tabChapterCount">0</span></button>
+      <button type="button" class="tab-btn" id="tabProject" role="tab" aria-selected="false" aria-controls="panelProject"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Project &amp; ZIP</span></button>
     </nav>
 
     <section class="tab-panel active" id="panelInput" role="tabpanel" aria-labelledby="tabInput">
       <section class="editor-panel card">
-        <div class="panel-heading editor-heading"><div><h2>✍️ Input Chapter</h2><span id="editorStatus">Siap untuk chapter berikutnya.</span></div><span class="editor-shortcut">Ctrl + V juga bisa digunakan</span></div>       
+        <div class="panel-heading editor-heading"><div><h2><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Input Chapter</span></h2><span id="editorStatus">Siap untuk chapter berikutnya.</span></div><span class="editor-shortcut">Ctrl + V juga bisa digunakan</span></div>       
 <div class="chapter-meta">
   <div class="field chapter-number-field">
     <label for="chapterNumber">Nomor Chapter</label>
@@ -48,12 +48,12 @@
     type="button"
     class="btn btn-secondary"
     id="detectChapterBtn"
-  >🔎 Deteksi</button>
+  ><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Deteksi</span></button>
 </div>
         <div class="editor-toolbar" role="toolbar" aria-label="Pemformatan editor chapter">
           <div class="toolbar-group" aria-label="Riwayat perubahan">
-            <button type="button" class="toolbar-btn" id="undoBtn" title="Urungkan (Ctrl+Z)" aria-label="Urungkan">↶</button>
-            <button type="button" class="toolbar-btn" id="redoBtn" title="Ulangi (Ctrl+Y)" aria-label="Ulangi">↷</button>
+            <button type="button" class="toolbar-btn" id="undoBtn" title="Urungkan (Ctrl+Z)" aria-label="Urungkan"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v3"/></svg></button>
+            <button type="button" class="toolbar-btn" id="redoBtn" title="Ulangi (Ctrl+Y)" aria-label="Ulangi"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0-7 7v3"/></svg></button>
           </div>
           <span class="toolbar-divider"></span>
           <div class="toolbar-group" aria-label="Format teks">
@@ -63,24 +63,24 @@
           </div>
           <span class="toolbar-divider"></span>
           <div class="toolbar-group" aria-label="Perataan teks">
-            <button type="button" class="toolbar-btn format-btn" data-command="justifyLeft" title="Rata kiri" aria-label="Rata kiri">☰</button>
-            <button type="button" class="toolbar-btn format-btn" data-command="justifyCenter" title="Rata tengah" aria-label="Rata tengah">≡</button>
-            <button type="button" class="toolbar-btn format-btn" data-command="justifyFull" title="Rata kanan-kiri" aria-label="Rata kanan-kiri">▤</button>
+            <button type="button" class="toolbar-btn format-btn" data-command="justifyLeft" title="Rata kiri" aria-label="Rata kiri"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 9h10M4 13h16M4 17h10M4 21h16"/></svg></button>
+            <button type="button" class="toolbar-btn format-btn" data-command="justifyCenter" title="Rata tengah" aria-label="Rata tengah"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 9h10M4 13h16M7 17h10M4 21h16"/></svg></button>
+            <button type="button" class="toolbar-btn format-btn" data-command="justifyFull" title="Rata kanan-kiri" aria-label="Rata kanan-kiri"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 9h16M4 13h16M4 17h16M4 21h16"/></svg></button>
           </div>
           <span class="toolbar-spacer"></span>
-          <button type="button" class="btn btn-secondary paste-btn" id="pasteBtn" title="Paste dengan mempertahankan format HTML">📋 Paste</button>
-          <button type="button" class="btn btn-secondary keyboard-toggle" id="keyboardToggleBtn" aria-pressed="false" hidden>⌨️ Aktifkan ketik</button>
+          <button type="button" class="btn btn-secondary paste-btn" id="pasteBtn" title="Paste dengan mempertahankan format HTML"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2M8 10h8M8 14h8M8 18h5"/></svg><span>Paste</span></button>
+          <button type="button" class="btn btn-secondary keyboard-toggle" id="keyboardToggleBtn" aria-pressed="false" hidden><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M6 9h.01M9 9h.01M12 9h.01M15 9h.01M18 9h.01M6 12h.01M9 12h.01M12 12h.01M15 12h.01M18 12h.01M8 15h8"/></svg><span>Aktifkan ketik</span></button>
         </div>
         <div class="editor-wrap"><div id="chapterEditor" class="rich-editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Isi chapter"></div><div class="editor-placeholder">Paste atau tulis terjemahan chapter di sini...</div></div>
         <div class="editor-info"><span id="editorStats">0 karakter · 0 kata · 0 paragraf</span><span id="editorSaveHint">Perubahan disimpan otomatis</span></div>
-        <div class="editor-actions"><button type="button" class="btn btn-primary grow" id="addChapterBtn">➕ Tambah Chapter</button><button type="button" class="btn btn-secondary" id="updateChapterBtn">✏ Update</button><button type="button" class="btn btn-secondary" id="clearDraftBtn">🧹 Bersihkan Input</button><button type="button" class="btn btn-secondary" id="importTxtBtn">📄 Import TXT</button><input id="txtFileInput" type="file" accept=".txt,text/plain" hidden></div>
+        <div class="editor-actions"><button type="button" class="btn btn-primary grow" id="addChapterBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Tambah Chapter</span></button><button type="button" class="btn btn-secondary" id="updateChapterBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Update</span></button><button type="button" class="btn btn-secondary" id="clearDraftBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16 8-8 5 5-8 8H4zM14 6l2-2 4 4-2 2M3 21h18"/></svg><span>Bersihkan Input</span></button><button type="button" class="btn btn-secondary" id="importTxtBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10z"/><path d="M13 3v7h7M8 14h8M8 18h8"/></svg><span>Import TXT</span></button><input id="txtFileInput" type="file" accept=".txt,text/plain" hidden></div>
       </section>
-      <section class="format-note card"><strong>💡 Alur cepat:</strong><span>Paste → Deteksi/isi nomor → Tambah → Input dikosongkan → ulangi → cek daftar → Generate ZIP.</span></section>
+      <section class="format-note card"><strong><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M8 14a7 7 0 1 1 8 0c-1 .8-1 2-1 2h-6s0-1.2-1-2z"/></svg><span>Alur cepat:</span></strong><span>Paste → Deteksi/isi nomor → Tambah → Input dikosongkan → ulangi → cek daftar → Generate ZIP.</span></section>
     </section>
 
     <section class="tab-panel" id="panelChapters" role="tabpanel" aria-labelledby="tabChapters" hidden>
       <section class="chapter-panel card">
-        <div class="panel-heading"><div><h2>📋 Chapter Sementara</h2><span id="chapterCount">0 chapter</span></div><span class="panel-hint">Klik chapter untuk membuka preview · Edit dari popup</span></div>
+        <div class="panel-heading"><div><h2><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Chapter Sementara</span></h2><span id="chapterCount">0 chapter</span></div><span class="panel-hint">Klik chapter untuk membuka preview · Edit dari popup</span></div>
         
 <div class="list-selection-actions">
   <label>
@@ -94,18 +94,18 @@
 
 <div class="list-actions">
   <button type="button" class="btn btn-danger" id="deleteChapterBtn" disabled>
-    🗑 Hapus Dipilih
+    <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/></svg><span>Hapus Dipilih</span>
   </button>
   <button type="button" class="btn btn-secondary" id="clearAllBtn">
-    🧹 Hapus Semua
+    <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/></svg><span>Hapus Semua</span>
   </button>
 </div>
       </section>
     </section>
 
     <section class="tab-panel" id="panelProject" role="tabpanel" aria-labelledby="tabProject" hidden>
-      <section class="project-bar card"><div class="field novel-field"><label for="novelName">Nama Novel</label><input id="novelName" type="text" placeholder="Nama novel" autocomplete="off"></div><div class="project-actions"><div class="project-status-wrap"><div id="projectStatus" class="project-status">Belum ada chapter.</div><div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div></div><button type="button" class="btn btn-primary generate-btn" id="generateZipBtn">📦 Generate ZIP</button></div></section>
-      <section class="project-help card"><div class="project-help-title">📦 Status Project</div><p>Nama ZIP dibuat otomatis berdasarkan nama novel dan rentang chapter yang tersimpan.</p><div class="zip-example">Contoh: Novel10-20.zip</div><button type="button" class="btn btn-secondary" id="goToChaptersBtn">📋 Lihat Chapter Sementara</button></section>
+      <section class="project-bar card"><div class="field novel-field"><label for="novelName">Nama Novel</label><input id="novelName" type="text" placeholder="Nama novel" autocomplete="off"></div><div class="project-actions"><div class="project-status-wrap"><div id="projectStatus" class="project-status">Belum ada chapter.</div><div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div></div><button type="button" class="btn btn-primary generate-btn" id="generateZipBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v4H3zM5 8v12h14V8M10 12h4"/></svg><span>Generate ZIP</span></button></div></section>
+      <section class="project-help card"><div class="project-help-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Status Project</span></div><p>Nama ZIP dibuat otomatis berdasarkan nama novel dan rentang chapter yang tersimpan.</p><div class="zip-example">Contoh: Novel10-20.zip</div><button type="button" class="btn btn-secondary" id="goToChaptersBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Lihat Chapter Sementara</span></button></section>
     </section>
 
   <!-- POPUP PREVIEW -->
@@ -117,13 +117,13 @@
           <div class="preview-kicker">Preview Chapter</div>
           <h2 id="previewTitle">Chapter</h2>
         </div>
-        <button type="button" class="icon-btn" id="closePreviewBtn" aria-label="Tutup preview">✕</button>
+        <button type="button" class="icon-btn" id="closePreviewBtn" aria-label="Tutup preview"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg></button>
       </header>
       <div id="previewContent" class="preview-content"></div>
       <footer class="preview-footer">
         <span id="previewStats">0 karakter · 0 kata</span>
         <div class="preview-actions">
-          <button type="button" class="btn btn-secondary" id="previewEditBtn">✏ Edit Chapter</button>
+          <button type="button" class="btn btn-secondary" id="previewEditBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Edit Chapter</span></button>
           <button type="button" class="btn btn-primary" id="previewCloseActionBtn">Tutup</button>
         </div>
       </footer>
