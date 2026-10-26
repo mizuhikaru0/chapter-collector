@@ -1026,3 +1026,72 @@ body {
 @media (min-width: 701px) {
   .keyboard-toggle[hidden] { display: none !important; }
 }
+
+/* FIX MOBILE TOOLBAR: keep controls compact, aligned, and in one horizontal row */
+#panelInput .editor-toolbar {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 5px 6px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#panelInput .editor-toolbar::-webkit-scrollbar { display: none; }
+#panelInput .editor-toolbar .toolbar-group {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  flex-wrap: nowrap !important;
+  gap: 3px;
+  white-space: nowrap;
+}
+#panelInput .editor-toolbar .toolbar-btn {
+  display: inline-flex !important;
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-size: 15px !important;
+  border: 1px solid #e1e6ec;
+  border-radius: 7px;
+  background: #fff;
+}
+#panelInput .editor-toolbar .toolbar-divider { display: block !important; flex: 0 0 1px !important; height: 23px; margin: 0 1px; }
+#panelInput .editor-toolbar .toolbar-spacer { display: none !important; }
+#panelInput .editor-toolbar .paste-btn,
+#panelInput .editor-toolbar .keyboard-toggle {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+#panelInput .editor-toolbar .keyboard-toggle[hidden] { display: none !important; }
+
+/* Keep chapter number and detection button balanced on narrow screens */
+@media (max-width: 520px) {
+  #panelInput .chapter-meta { display: flex; flex-direction: row; align-items: flex-end; flex-wrap: nowrap; gap: 8px; }
+  #panelInput .chapter-number-field { flex: 1 1 auto; width: auto; min-width: 0; }
+  #panelInput #detectChapterBtn { flex: 0 0 auto; width: auto; min-width: 0; min-height: 40px; padding: 8px 12px; white-space: nowrap; }
+}
