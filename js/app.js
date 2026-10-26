@@ -50,16 +50,30 @@ function setMobileTyping(enabled, focusEditor = false) {
   if (!isMobileEditor.matches) return;
 
   mobileTypingEnabled = Boolean(enabled);
-  editor.setAttribute("contenteditable", mobileTypingEnabled ? "true" : "false");
+
+  // Editor isi chapter
+  editor.setAttribute(
+    "contenteditable",
+    mobileTypingEnabled ? "true" : "false"
+  );
+
+  // Input nomor chapter
+  chapterNumber.readOnly = !mobileTypingEnabled;
+
   keyboardToggleBtn.textContent = mobileTypingEnabled
     ? "⌨️ Sembunyikan keyboard"
     : "⌨️ Aktifkan ketik";
-  keyboardToggleBtn.setAttribute("aria-pressed", String(mobileTypingEnabled));
+
+  keyboardToggleBtn.setAttribute(
+    "aria-pressed",
+    String(mobileTypingEnabled)
+  );
 
   if (mobileTypingEnabled && focusEditor) {
     editor.focus();
-  } else if (!mobileTypingEnabled && document.activeElement === editor) {
-    editor.blur();
+  } else if (!mobileTypingEnabled) {
+    if (document.activeElement === editor) editor.blur();
+    if (document.activeElement === chapterNumber) chapterNumber.blur();
   }
 }
 
