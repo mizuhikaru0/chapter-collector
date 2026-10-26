@@ -1107,3 +1107,76 @@ window.addEventListener("beforeunload", () => {
 });
 
 init();
+
+// Editor height drag-resize (mouse + touch + pen), persisted between visits.
+(() => {
+  const editorWrap = document.querySelector("#panelInput .editor-wrap");
+  const handle = document.getElementById("editorResizeHandle");
+  const editorPanel = document.querySelector("#panelInput .editor-panel");
+  if (!editorWrap || !handle || !editorPanel) return;
+
+  const STORAGE_KEY = "chapter_collector_editor_height_v1";
+  const MIN_HEIGHT = 180;
+  const MAX_HEIGHT = 1400;
+  const defaultHeight = window.matchMedia("(max-width: 900px)").matches ? 360 : 340;
+  let height = defaultHeight;
+  try {
+    const saved = Number(localStorage.getItem(STORAGE_KEY));
+    if (Number.isFinite(saved) && saved >= MIN_HEIGHT && saved <= MAX_HEIGHT) height = saved;
+  } catch (_) {}
+
+  function applyHeight(nextHeight, save = true) {
+    height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, Math.round(nextHeight)));
+    editorWrap.style.setProperty("--chapter-editor-height", `${height}px`);
+    editorWrap.style.height = `${height}px`;
+    handle.setAttribute("aria-valuemin", String(MIN_HEIGHT));
+    handle.setAttribute("aria-valuemax", String(MAX_HEIGHT));
+    handle.setAttribute("aria-valuenow", String(height));
+    handle.setAttribute("aria-valuetext", `${height} piksel`);
+    if (save) {
+      try { localStorage.setItem(STORAGE_KEY, String(height)); } catch (_) {}
+    }
+  }
+
+  applyHeight(height, false);
+  let startY = 0;
+  let startHeight = height;
+  let activePointerId = null;
+
+  handle.addEventListener("pointerdown", event => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
+    activePointerId = event.pointerId;
+    startY = event.clientY;
+    startHeight = height;
+    handle.classList.add("is-dragging");
+    handle.setPointerCapture?.(event.pointerId);
+  });
+
+  handle.addEventListener("pointermove", event => {
+    if (activePointerId !== event.pointerId) return;
+    event.preventDefault();
+    applyHeight(startHeight + event.clientY - startY, false);
+  });
+
+  function finishResize(event) {
+    if (activePointerId !== event.pointerId) return;
+    activePointerId = null;
+    handle.classList.remove("is-dragging");
+    try { localStorage.setItem(STORAGE_KEY, String(height)); } catch (_) {}
+  }
+  handle.addEventListener("pointerup", finishResize);
+  handle.addEventListener("pointercancel", finishResize);
+  handle.addEventListener("lostpointercapture", event => {
+    if (activePointerId === event.pointerId) { activePointerId = null; handle.classList.remove("is-dragging"); }
+  });
+
+  // Keyboard accessibility: arrow keys adjust height in 24px steps.
+  handle.addEventListener("keydown", event => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      applyHeight(height + (event.key === "ArrowDown" ? 24 : -24));
+    } else if (event.key === "Home") { event.preventDefault(); applyHeight(MIN_HEIGHT); }
+    else if (event.key === "End") { event.preventDefault(); applyHeight(MAX_HEIGHT); }
+  });
+})();
