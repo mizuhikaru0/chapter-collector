@@ -42,6 +42,39 @@ const state = {
 let saveTimer = null;
 let editingChapterNumber = null;
 const deletionSelection = new Set();
+const keyboardToggleBtn = $("keyboardToggleBtn");
+const isMobileEditor = window.matchMedia("(max-width: 700px)");
+let mobileTypingEnabled = false;
+
+function setMobileTyping(enabled, focusEditor = false) {
+  if (!isMobileEditor.matches) return;
+
+  mobileTypingEnabled = Boolean(enabled);
+  editor.setAttribute("contenteditable", mobileTypingEnabled ? "true" : "false");
+  keyboardToggleBtn.textContent = mobileTypingEnabled
+    ? "⌨️ Sembunyikan keyboard"
+    : "⌨️ Aktifkan ketik";
+  keyboardToggleBtn.setAttribute("aria-pressed", String(mobileTypingEnabled));
+
+  if (mobileTypingEnabled && focusEditor) {
+    editor.focus();
+  } else if (!mobileTypingEnabled && document.activeElement === editor) {
+    editor.blur();
+  }
+}
+
+function runEditorCommand(command, value = null) {
+  if (isMobileEditor.matches && !mobileTypingEnabled) {
+    showToast("Tekan Aktifkan ketik terlebih dahulu untuk memakai toolbar.");
+    return;
+  }
+
+  editor.focus();
+  document.execCommand(command, false, value);
+  updateEditorStats();
+  updateChapterNumberSuggestion();
+  scheduleSave();
+}
 
 function setActiveTab(name) {
   if (!Object.prototype.hasOwnProperty.call(tabPanels, name)) {
@@ -723,26 +756,27 @@ async function clearAll() {
    ========================================================= */
 
 async function pasteClipboard() {
+  const wasMobile = isMobileEditor.matches;
+  const wasTypingEnabled = mobileTypingEnabled;
+
+  // Paste boleh dilakukan walaupun keyboard HP sedang disembunyikan.
+  if (wasMobile) {
+    editor.setAttribute("contenteditable", "true");
+  }
+
   try {
+    editor.focus();
+
     if (navigator.clipboard?.read) {
       const items = await navigator.clipboard.read();
 
       for (const item of items) {
         if (item.types.includes("text/html")) {
           const blob = await item.getType("text/html");
-
-          editor.focus();
-
-          document.execCommand(
-            "insertHTML",
-            false,
-            await blob.text()
-          );
-
+          document.execCommand("insertHTML", false, await blob.text());
           scheduleSave();
           updateEditorStats();
           updateChapterNumberSuggestion();
-
           showToast("HTML berformat berhasil ditempel.");
           return;
         }
@@ -750,22 +784,18 @@ async function pasteClipboard() {
     }
 
     const text = await navigator.clipboard.readText();
-
-    editor.focus();
-
     document.execCommand("insertText", false, text);
-
     scheduleSave();
     updateEditorStats();
     updateChapterNumberSuggestion();
-
     showToast("Teks berhasil ditempel.");
   } catch (error) {
     console.error(error);
-
-    showToast(
-      "Clipboard tidak dapat diakses. Gunakan Ctrl+V sebagai alternatif."
-    );
+    showToast("Clipboard tidak dapat diakses. Gunakan Ctrl+V atau izinkan akses clipboard.");
+  } finally {
+    if (wasMobile) {
+      setMobileTyping(wasTypingEnabled, false);
+    }
   }
 }
 
@@ -932,6 +962,49 @@ $("goToChaptersBtn").addEventListener("click", () => {
 });
 
 $("pasteBtn").addEventListener("click", pasteClipboard);
+
+// Tombol toolbar menjaga fokus/seleksi editor agar pemformatan diterapkan
+// pada teks yang dipilih, bukan kehilangan seleksi ketika tombol diklik.
+document.querySelectorAll(".editor-toolbar button").forEach(button => {
+  button.addEventListener("mousedown", event => event.preventDefault());
+});
+
+document.querySelectorAll(".format-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    runEditorCommand(button.dataset.command);
+  });
+});
+
+$("undoBtn").addEventListener("click", () => runEditorCommand("undo"));
+$("redoBtn").addEventListener("click", () => runEditorCommand("redo"));
+
+if (keyboardToggleBtn) {
+  if (isMobileEditor.matches) {
+    keyboardToggleBtn.hidden = false;
+    setMobileTyping(false);
+  }
+
+  keyboardToggleBtn.addEventListener("click", () => {
+    setMobileTyping(!mobileTypingEnabled, !mobileTypingEnabled);
+  });
+
+  isMobileEditor.addEventListener("change", event => {
+    keyboardToggleBtn.hidden = !event.matches;
+    if (event.matches) {
+      mobileTypingEnabled = false;
+      setMobileTyping(false);
+    } else {
+      mobileTypingEnabled = true;
+      editor.setAttribute("contenteditable", "true");
+    }
+  });
+}
+
+editor.addEventListener("click", () => {
+  if (isMobileEditor.matches && !mobileTypingEnabled) {
+    showToast("Tekan tombol Aktifkan ketik untuk mulai mengedit.");
+  }
+});
 
 $("detectChapterBtn").addEventListener("click", () => {
   detectChapter(false);
