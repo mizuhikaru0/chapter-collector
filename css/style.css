@@ -1494,3 +1494,101 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 420px) {
   #panelInput .rich-editor { min-height: 360px; }
 }
+
+
+/* MOBILE ALIGNMENT PATCH — equal outer margins and centered layout */
+@media (max-width: 900px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .app-shell {
+    box-sizing: border-box;
+    width: calc(100% - 28px) !important;
+    max-width: 1500px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .app-header,
+  .tab-panel,
+  #panelInput,
+  #panelChapters,
+  #panelProject,
+  #panelInput .editor-panel,
+  .project-bar,
+  .format-note {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #panelInput .editor-panel {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 14px;
+  }
+
+  #panelInput .chapter-meta {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px;
+  }
+
+  #panelInput .chapter-number-field,
+  #panelInput .chapter-number-field input,
+  #panelInput .editor-wrap,
+  #panelInput .rich-editor,
+  #panelInput .editor-toolbar,
+  #panelInput .editor-info,
+  #panelInput .editor-actions {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #panelInput .editor-toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  #panelInput .editor-toolbar::-webkit-scrollbar { display: none; }
+
+  .tabs {
+    left: 14px;
+    right: 14px;
+    width: auto;
+    box-sizing: border-box;
+  }
+
+  .tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-shell {
+    width: calc(100% - 28px) !important;
+    margin-top: 10px !important;
+  }
+
+  .app-header {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  #panelInput .editor-panel { padding: 12px; }
+  #panelInput .chapter-meta { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  #panelInput .chapter-meta > .btn { padding-left: 12px; padding-right: 12px; }
+}
