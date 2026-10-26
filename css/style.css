@@ -1449,3 +1449,48 @@ input:focus, select:focus, textarea:focus {
   #panelInput .editor-wrap { min-height: 220px; flex-basis: 220px; }
   #panelInput .rich-editor { min-height: 220px; }
 }
+
+/* Editor kembali ke alur halaman normal: tidak ada scroll di dalam panel/editor. */
+@media (max-width: 900px) {
+  html, body { height: auto; min-height: 100%; }
+  body { overflow-x: hidden; overflow-y: auto; }
+  .app-shell {
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: 12px;
+    margin-bottom: 20px;
+  }
+  .tab-panel,
+  #panelInput,
+  #panelChapters,
+  #panelProject {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  #panelInput .editor-panel {
+    flex: 0 0 auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  #panelInput .editor-wrap {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+  #panelInput .rich-editor {
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    min-height: 360px;
+    max-height: none;
+    overflow: visible;
+  }
+  #panelInput .format-note { flex: 0 0 auto; }
+  #panelChapters .chapter-list { max-height: none; overflow: visible; }
+}
+
+@media (max-width: 420px) {
+  #panelInput .rich-editor { min-height: 360px; }
+}
