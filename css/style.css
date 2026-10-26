@@ -1095,3 +1095,229 @@ body {
   #panelInput .chapter-number-field { flex: 1 1 auto; width: auto; min-width: 0; }
   #panelInput #detectChapterBtn { flex: 0 0 auto; width: auto; min-width: 0; min-height: 40px; padding: 8px 12px; white-space: nowrap; }
 }
+
+/* =========================================================
+   VISUAL POLISH — understated, editorial, practical
+   Keep the existing layout and application behaviour intact.
+   ========================================================= */
+:root {
+  --bg: #f3f5f7;
+  --card: #ffffff;
+  --border: #dce2e8;
+  --text: #252b32;
+  --muted: #68727e;
+  --primary: #285f9e;
+  --primary-hover: #204f86;
+  --secondary: #edf1f4;
+  --secondary-hover: #e2e8ed;
+  --shadow: 0 1px 2px rgba(20, 31, 44, .035), 0 5px 18px rgba(20, 31, 44, .035);
+}
+
+html { color-scheme: light; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button, input, textarea, select { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible, [contenteditable="true"]:focus-visible {
+  outline: 2px solid rgba(40, 95, 158, .55);
+  outline-offset: 2px;
+}
+
+.app-shell { max-width: 1440px; }
+.app-header { align-items: center; gap: 16px; }
+.app-header h1 { font-size: clamp(22px, 2vw, 28px); letter-spacing: -.035em; font-weight: 750; }
+.app-header p { font-size: 13px; line-height: 1.5; }
+.storage-status { font-size: 12px; }
+.card {
+  border-color: var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.panel-heading { border-color: #e8ecf0; }
+.panel-heading h2 { letter-spacing: -.02em; font-weight: 720; }
+.panel-heading span { line-height: 1.45; }
+
+/* Navigation: quiet surface, clear active state */
+.tabs {
+  padding: 4px;
+  gap: 4px;
+  background: #e9edf1;
+  border-color: #dce2e8;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.tab-btn {
+  min-height: 40px;
+  border-radius: 7px;
+  color: #596572;
+  font-size: 13px;
+  font-weight: 650;
+}
+.tab-btn.active {
+  color: #244f7d;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(25, 39, 55, .09);
+}
+.tab-badge { font-variant-numeric: tabular-nums; }
+
+/* Fields and editor */
+input, select, textarea {
+  color: var(--text);
+  border-color: #d3dae1;
+  border-radius: 8px;
+  box-shadow: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #7b9fc5;
+  box-shadow: 0 0 0 3px rgba(40, 95, 158, .09);
+}
+#panelInput .editor-panel { padding: 16px; border-radius: 12px; }
+#panelInput .editor-heading { padding-bottom: 13px; }
+#panelInput .chapter-meta { margin: 14px 0 10px; }
+.chapter-number-field { gap: 5px; }
+.field label { color: #4e5965; font-size: 12px; font-weight: 700; }
+#chapterNumber { min-height: 42px; font-variant-numeric: tabular-nums; }
+#panelInput .editor-wrap { border-radius: 9px; }
+#panelInput .rich-editor {
+  border-color: #d5dce3;
+  border-radius: 9px;
+  background: #fff;
+  padding: 54px 22px 22px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #303740;
+  overflow-wrap: anywhere;
+  box-shadow: inset 0 1px 2px rgba(22, 34, 46, .025);
+}
+#panelInput .rich-editor:focus {
+  border-color: #8aa9cb;
+  box-shadow: 0 0 0 3px rgba(40, 95, 158, .075);
+}
+.editor-placeholder { top: 52px; left: 22px; color: #929ba5; font-size: 14px; }
+#panelInput .editor-info { margin-top: 9px; font-size: 11px; line-height: 1.55; }
+#editorStats { color: #5f6a76; font-variant-numeric: tabular-nums; }
+#editorSaveHint { color: #7a858f; }
+
+/* Toolbar uses subtle borders rather than oversized decorative controls */
+#panelInput .editor-toolbar {
+  gap: 5px !important;
+  min-height: 42px;
+  padding: 5px 0 8px;
+}
+#panelInput .editor-toolbar .toolbar-btn {
+  border-color: #dce2e8;
+  border-radius: 7px;
+  background: #f8fafb;
+  color: #3e4955;
+  box-shadow: none;
+  transition: background .14s ease, border-color .14s ease;
+}
+#panelInput .editor-toolbar .toolbar-btn:hover {
+  background: #edf2f6;
+  border-color: #cbd5df;
+}
+#panelInput .editor-toolbar .toolbar-btn:active { background: #e5edf5; }
+#panelInput .editor-toolbar .toolbar-divider { background: #d9e0e6; }
+#panelInput .editor-toolbar .paste-btn,
+#panelInput .editor-toolbar .keyboard-toggle {
+  border: 1px solid #d7e0e8;
+  border-radius: 7px;
+  background: #edf2f6;
+  color: #344657;
+  font-weight: 650;
+}
+#panelInput .editor-toolbar .paste-btn:hover,
+#panelInput .editor-toolbar .keyboard-toggle:hover { background: #e3ebf2; }
+
+/* Buttons: restrained radius and predictable hierarchy */
+.btn {
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 680;
+  transition: background .14s ease, border-color .14s ease, transform .08s ease;
+}
+.btn-primary { background: var(--primary); }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary {
+  background: #edf1f4;
+  color: #36414c;
+  border: 1px solid #e3e8ed;
+}
+.btn-secondary:hover { background: #e3e9ee; }
+.btn-danger { background: #b94444; }
+.btn-danger:hover { background: #a63838; }
+#panelInput .editor-actions { gap: 8px; }
+#panelInput .editor-actions .btn { min-height: 40px; }
+#panelInput #addChapterBtn { letter-spacing: -.01em; }
+
+/* Chapter list and project panels */
+.chapter-panel, .project-bar, .project-help { border-radius: 12px; }
+.chapter-list { padding: 10px 12px; }
+.chapter-item { border-radius: 8px; }
+.chapter-item:hover { background: #f5f7f9; border-color: #e1e6eb; }
+.chapter-item.previewing { background: #eef4fa; border-color: #d2e0ee; }
+.chapter-item.deletion-selected { background: #fff5f4; border-color: #efd5d2; }
+.chapter-item-main strong { font-weight: 680; }
+.chapter-item-main small { font-variant-numeric: tabular-nums; }
+.list-actions { border-color: #e8ecf0; }
+.project-bar { gap: 18px; }
+.project-status { line-height: 1.5; }
+.zip-name-preview { color: #78838e; }
+.project-help { line-height: 1.6; }
+.zip-example { border: 1px solid #e5e9ed; background: #f6f8fa; border-radius: 7px; }
+.format-note { border-radius: 10px; line-height: 1.65; }
+
+/* Preview modal */
+.preview-dialog { border-color: #dce2e8; border-radius: 13px; box-shadow: 0 18px 55px rgba(20, 31, 44, .18); }
+.preview-header, .preview-footer { background: #fafbfc; border-color: #e5e9ed; }
+.preview-header h2 { letter-spacing: -.025em; }
+.preview-content { color: #303740; font-size: 15px; line-height: 1.85; }
+.icon-btn { border: 1px solid #e0e5ea; border-radius: 8px; }
+.toast { border: 1px solid rgba(255,255,255,.1); box-shadow: 0 6px 22px rgba(0,0,0,.16); }
+
+@media (min-width: 701px) {
+  #panelInput .editor-panel { padding: 18px; }
+  #panelInput .rich-editor { padding-left: 28px; padding-right: 28px; }
+  .chapter-list { padding: 12px 16px; }
+}
+
+@media (max-width: 700px) {
+  body { font-size: 13px; }
+  .app-shell { width: calc(100% - 16px); }
+  .app-header { gap: 5px; }
+  .app-header h1 { font-size: 22px; }
+  .app-header p { font-size: 12px; }
+  .storage-status { font-size: 11px; }
+  #panelInput .editor-panel { padding: 12px; }
+  #panelInput .panel-heading h2 { font-size: 16px; }
+  #panelInput .rich-editor { padding: 48px 15px 16px; font-size: 14px; line-height: 1.75; }
+  .editor-placeholder { top: 47px; left: 15px; right: 85px; font-size: 13px; }
+  #panelInput .editor-toolbar { padding-top: 4px; }
+  .tab-btn { font-size: 12px; }
+  .format-note { padding: 10px 12px; font-size: 12px; }
+  .btn { min-height: 38px; }
+}
+
+@media (max-width: 420px) {
+  #panelInput .editor-toolbar { gap: 4px !important; }
+  #panelInput .editor-toolbar .toolbar-btn {
+    flex-basis: 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+  }
+  #panelInput .editor-toolbar .paste-btn,
+  #panelInput .editor-toolbar .keyboard-toggle { padding: 0 8px !important; font-size: 11px !important; }
+  #panelInput #detectChapterBtn { padding: 8px 10px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
