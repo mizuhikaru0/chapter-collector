@@ -7,6 +7,9 @@ const $ = id => document.getElementById(id);
 const novelName = $("novelName");
 const chapterNumber = $("chapterNumber");
 const editor = $("chapterEditor");
+const rawHtmlEditor = $("rawHtmlEditor");
+const outputMode = $("outputMode");
+const outputModeHint = $("outputModeHint");
 const chapterNumberSuggestion = $("chapterNumberSuggestion");
 const chapterList = $("chapterList");
 const chapterCount = $("chapterCount");
@@ -33,7 +36,9 @@ const state = {
   novelName: "",
   chapterNumber: "",
   draft: "",
+  draftMode: "default",
   chapters: {},
+  chapterModes: {},
   selected: null,
   previewed: null,
   lastAddedChapterNumber: null
@@ -45,6 +50,50 @@ const deletionSelection = new Set();
 const keyboardToggleBtn = $("keyboardToggleBtn");
 const isMobileEditor = window.matchMedia("(max-width: 700px)");
 let mobileTypingEnabled = false;
+let previousOutputMode = "default";
+
+function isRawHtmlMode() {
+  return outputMode.value === "raw-html";
+}
+
+function getCurrentInput() {
+  return isRawHtmlMode() ? rawHtmlEditor.value : editor.innerHTML;
+}
+
+function setOutputMode(mode) {
+  const raw = mode === "raw-html";
+  outputMode.value = raw ? "raw-html" : "default";
+  editor.closest(".editor-wrap").hidden = raw;
+  $("editorResizeHandle").hidden = raw;
+  rawHtmlEditor.hidden = !raw;
+  outputModeHint.textContent = raw
+    ? "HTML utuh: kode sumber disimpan tanpa cleanHtml. File di dalam ZIP tetap berekstensi .txt."
+    : "Default: HTML dibersihkan dan diformat seperti proses sebelumnya.";
+  previousOutputMode = outputMode.value;
+  updateEditorStats();
+}
+
+function normalizeRawChapterHeading(content, number) {
+  // Hanya teks judul yang dinormalisasi. Struktur, tag, atribut, CSS,
+  // komentar, dan kode HTML lain tidak disentuh.
+  const heading = /(<h[1-6]\b[^>]*>\s*)(?:BAB|Bab|bab|Chapter|Ch\.?)\s*\d+([^<]*)(<\/h[1-6]\s*>)/i;
+  if (heading.test(content)) {
+    return content.replace(heading, (match, open, suffix, close) =>
+      `${open}Chapter ${number}${suffix}${close}`);
+  }
+
+  const blockHeading = /(<(?:p|div|span)\b[^>]*>\s*)(?:BAB|Bab|bab|Chapter|Ch\.?)\s*\d+([^<]*)(<\/(?:p|div|span)\s*>)/i;
+  if (blockHeading.test(content)) {
+    return content.replace(blockHeading, (match, open, suffix, close) =>
+      `${open}Chapter ${number}${suffix}${close}`);
+  }
+
+  const hasChapterHeading = /<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s+\d+\b/i.test(content);
+  if (!hasChapterHeading) {
+    return `<h2 style="text-align: center;">Chapter ${number}</h2>\n${content}`;
+  }
+  return content;
+}
 
 function setMobileTyping(enabled, focusEditor = false) {
   if (!isMobileEditor.matches) return;
@@ -59,6 +108,7 @@ function setMobileTyping(enabled, focusEditor = false) {
 
   // Input nomor chapter
   chapterNumber.readOnly = !mobileTypingEnabled;
+  rawHtmlEditor.readOnly = !mobileTypingEnabled;
 
   keyboardToggleBtn.textContent = mobileTypingEnabled
     ? "⌨️ Sembunyikan keyboard"
@@ -137,16 +187,16 @@ function countWords(text) {
 }
 
 function updateEditorStats() {
-  const text = getPlainText(editor.innerHTML);
+  const text = getPlainText(getCurrentInput());
   const characters = text.length;
   const words = countWords(text);
 
   const paragraphs = text
     ? Math.max(
         1,
-        editor.querySelectorAll(
-          "p, h1, h2, h3, h4, h5, h6, blockquote, li"
-        ).length || text.split(/\n+/).filter(Boolean).length
+        (isRawHtmlMode()
+          ? (rawHtmlEditor.value.match(/<(?:p|h[1-6]|blockquote|li)\b/gi) || []).length
+          : editor.querySelectorAll("p, h1, h2, h3, h4, h5, h6, blockquote, li").length) || text.split(/\n+/).filter(Boolean).length
       )
     : 0;
 
@@ -208,7 +258,8 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     state.novelName = novelName.value;
     state.chapterNumber = chapterNumber.value;
-    state.draft = editor.innerHTML;
+    state.draft = getCurrentInput();
+    state.draftMode = outputMode.value;
 
     await saveState(state);
 
@@ -397,7 +448,15 @@ function editPreviewedChapter() {
   state.selected = number;
   editingChapterNumber = number;
   chapterNumber.value = number;
-  editor.innerHTML = state.chapters[number];
+  const chapterMode = state.chapterModes?.[number] || "default";
+  setOutputMode(chapterMode);
+  if (chapterMode === "raw-html") {
+    rawHtmlEditor.value = state.chapters[number];
+    editor.innerHTML = "";
+  } else {
+    editor.innerHTML = state.chapters[number];
+    rawHtmlEditor.value = "";
+  }
 
   updateEditorStats();
 
@@ -417,7 +476,7 @@ function editPreviewedChapter() {
    ========================================================= */
 
 function detectChapter(silent = false) {
-  const source = editor.innerHTML || editor.textContent || "";
+  const source = getCurrentInput();
 
   const patterns = [
     /<h[1-6][^>]*>\s*(?:BAB|Chapter|Ch\.)\s+(\d+)\b/i,
@@ -458,7 +517,7 @@ function getNumber() {
 }
 
 function hasRecognizedChapterHeading() {
-  const text = getPlainText(editor.innerHTML);
+  const text = getPlainText(getCurrentInput());
 
   const lines = text
     .split(/\r?\n/)
@@ -480,7 +539,7 @@ function hasRecognizedChapterHeading() {
     return true;
   }
 
-  const source = editor.innerHTML || editor.textContent || "";
+  const source = getCurrentInput();
 
   return [
     /<h[1-6][^>]*>\s*(?:BAB|Chapter|Ch\.)\s+(\d+)\b/i,
@@ -558,23 +617,27 @@ function addChapter() {
     return;
   }
 
-  const raw = editor.innerHTML.trim();
+  const raw = getCurrentInput();
 
-  if (!raw) {
+  if (!raw.trim()) {
     showToast("Input chapter masih kosong.");
     return;
   }
 
-  let content = cleanHtml(raw);
-
-  if (!content) {
-    showToast("Tidak ada konten setelah dibersihkan.");
-    return;
+  let content;
+  if (isRawHtmlMode()) {
+    content = normalizeRawChapterHeading(raw, number);
+  } else {
+    content = cleanHtml(raw);
+    if (!content) {
+      showToast("Tidak ada konten setelah dibersihkan.");
+      return;
+    }
+    content = ensureChapterHeading(content, number);
   }
 
-  content = ensureChapterHeading(content, number);
-
   state.chapters[number] = content;
+  state.chapterModes[number] = outputMode.value;
   state.lastAddedChapterNumber = number;
   state.selected = number;
   editingChapterNumber = null;
@@ -582,6 +645,7 @@ function addChapter() {
 
   chapterNumber.value = "";
   editor.innerHTML = "";
+  rawHtmlEditor.value = "";
 
   updateEditorStats();
   updateChapterNumberSuggestion();
@@ -592,7 +656,7 @@ function addChapter() {
   renderList();
   scheduleSave();
 
-  requestAnimationFrame(() => editor.focus());
+  requestAnimationFrame(() => (isRawHtmlMode() ? rawHtmlEditor : editor).focus());
 }
 
 function updateChapter() {
@@ -614,18 +678,22 @@ function updateChapter() {
     return;
   }
 
-  const raw = editor.innerHTML.trim();
+  const raw = getCurrentInput();
 
-  if (!raw) {
+  if (!raw.trim()) {
     showToast("Input chapter masih kosong.");
     return;
   }
 
-  let content = cleanHtml(raw);
-
-  if (!content) {
-    showToast("Tidak ada konten setelah dibersihkan.");
-    return;
+  let content;
+  if (isRawHtmlMode()) {
+    content = normalizeRawChapterHeading(raw, targetNumber);
+  } else {
+    content = cleanHtml(raw);
+    if (!content) {
+      showToast("Tidak ada konten setelah dibersihkan.");
+      return;
+    }
   }
 
   // Jangan menimpa chapter lain secara tidak sengaja jika nomor tujuan sudah ada.
@@ -643,14 +711,20 @@ function updateChapter() {
     /(<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s*)\d+(\b[^<]*<\/h[1-6]>)/i,
     `$1${targetNumber}$2`
   );
-  content = ensureChapterHeading(content, targetNumber);
+  if (isRawHtmlMode()) {
+    content = normalizeRawChapterHeading(content, targetNumber);
+  } else {
+    content = ensureChapterHeading(content, targetNumber);
+  }
 
   if (targetNumber !== originalNumber) {
     delete state.chapters[originalNumber];
+    delete state.chapterModes[originalNumber];
     deletionSelection.delete(originalNumber);
   }
 
   state.chapters[targetNumber] = content;
+  state.chapterModes[targetNumber] = outputMode.value;
   state.selected = targetNumber;
   editingChapterNumber = targetNumber;
   chapterNumber.value = String(targetNumber);
@@ -675,6 +749,7 @@ function updateChapter() {
 function clearDraft() {
   chapterNumber.value = "";
   editor.innerHTML = "";
+  rawHtmlEditor.value = "";
 
   updateEditorStats();
   updateChapterNumberSuggestion();
@@ -718,6 +793,7 @@ async function deleteChapter() {
 
   for (const number of numbers) {
     delete state.chapters[number];
+    delete state.chapterModes[number];
     deletionSelection.delete(number);
   }
 
@@ -750,6 +826,7 @@ async function clearAll() {
   }
 
   state.chapters = {};
+  state.chapterModes = {};
   state.selected = null;
   state.previewed = null;
   state.lastAddedChapterNumber = null;
@@ -779,6 +856,19 @@ async function pasteClipboard() {
   }
 
   try {
+    if (isRawHtmlMode()) {
+      const source = await navigator.clipboard.readText();
+      const start = rawHtmlEditor.selectionStart;
+      const end = rawHtmlEditor.selectionEnd;
+      rawHtmlEditor.setRangeText(source, start, end, "end");
+      rawHtmlEditor.focus();
+      scheduleSave();
+      updateEditorStats();
+      updateChapterNumberSuggestion();
+      showToast("Kode HTML ditempel sebagai teks sumber.");
+      return;
+    }
+
     editor.focus();
 
     if (navigator.clipboard?.read) {
@@ -819,7 +909,11 @@ function importTxt(file) {
   const reader = new FileReader();
 
   reader.onload = () => {
-    editor.innerHTML = String(reader.result || "");
+    if (isRawHtmlMode()) {
+      rawHtmlEditor.value = String(reader.result || "");
+    } else {
+      editor.innerHTML = String(reader.result || "");
+    }
 
     updateEditorStats();
 
@@ -858,7 +952,8 @@ async function generateZip() {
 
   state.novelName = novelName.value;
   state.chapterNumber = chapterNumber.value;
-  state.draft = editor.innerHTML;
+  state.draft = getCurrentInput();
+  state.draftMode = outputMode.value;
 
   await saveState(state);
 
@@ -896,6 +991,7 @@ async function generateZip() {
    ========================================================= */
 
 async function init() {
+  setOutputMode("default");
   const saved = await loadState();
 
   if (saved) {
@@ -903,7 +999,12 @@ async function init() {
 
     novelName.value = state.novelName || "";
     chapterNumber.value = state.chapterNumber || "";
-    editor.innerHTML = state.draft || "";
+    setOutputMode(state.draftMode || "default");
+    if (state.draftMode === "raw-html") {
+      rawHtmlEditor.value = state.draft || "";
+    } else {
+      editor.innerHTML = state.draft || "";
+    }
   }
 
   if (!Number.isInteger(state.lastAddedChapterNumber)) {
@@ -942,6 +1043,33 @@ chapterNumber.addEventListener("input", () => {
 editor.addEventListener("input", () => {
   updateEditorStats();
   updateChapterNumberSuggestion();
+  scheduleSave();
+});
+
+rawHtmlEditor.addEventListener("input", () => {
+  updateEditorStats();
+  updateChapterNumberSuggestion();
+  scheduleSave();
+});
+
+outputMode.addEventListener("change", () => {
+  const newMode = outputMode.value;
+  const oldMode = previousOutputMode;
+  const oldContent = oldMode === "raw-html" ? rawHtmlEditor.value : editor.innerHTML;
+
+  if (oldContent.trim() && !confirm(
+    "Input saat ini berisi konten. Berpindah mode akan memindahkan konten ke editor mode tujuan dan dapat mengubah tampilannya. Lanjutkan?"
+  )) {
+    outputMode.value = oldMode;
+    return;
+  }
+
+  if (newMode === "raw-html") {
+    rawHtmlEditor.value = editor.innerHTML;
+  } else {
+    editor.innerHTML = rawHtmlEditor.value;
+  }
+  setOutputMode(newMode);
   scheduleSave();
 });
 
@@ -1112,7 +1240,8 @@ document.addEventListener("keydown", event => {
 window.addEventListener("beforeunload", () => {
   state.novelName = novelName.value;
   state.chapterNumber = chapterNumber.value;
-  state.draft = editor.innerHTML;
+  state.draft = getCurrentInput();
+  state.draftMode = outputMode.value;
 
   localStorage.setItem(
     "chapter_collector_backup_v2",
