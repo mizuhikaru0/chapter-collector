@@ -1745,3 +1745,87 @@ input:focus, select:focus, textarea:focus {
 #detectChapterBtn {
   display: none !important;
 }
+/* =========================================================
+   PERINGATAN CHAPTER TERLEWAT (GAP DETECTION)
+   ========================================================= */
+.gap-warning {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #f2d59b;
+  background: #fffbeb;
+  color: #8a5308;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.gap-warning[hidden] {
+  display: none !important;
+}
+.gap-warning-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.gap-warning-main .ui-icon {
+  color: #d97706;
+  flex-shrink: 0;
+}
+.gap-warning-main span {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.gap-fill-btn {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid #e7c073;
+  border-radius: 6px;
+  background: #fff3c4;
+  color: #784504;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gap-fill-btn:hover {
+  background: #fde68a;
+}
+
+.project-gap-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  padding: 4px 8px;
+  border: 1px solid #f2d59b;
+  border-radius: 6px;
+  background: #fffbeb;
+  color: #8a5308;
+  font-size: 11px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+.project-gap-warning:hover {
+  background: #fef3c7;
+}
+.project-gap-warning[hidden] {
+  display: none !important;
+}
+.project-gap-warning .ui-icon {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+  color: #d97706;
+}
+
+@media (max-width: 700px) {
+  .gap-warning {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}

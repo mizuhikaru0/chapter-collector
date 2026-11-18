@@ -99,6 +99,14 @@
   <span id="selectedChapterCount">0 dipilih</span>
 </div>
 
+<div id="chapterGapWarning" class="gap-warning" role="status" hidden>
+  <div class="gap-warning-main">
+    <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <span id="chapterGapText"></span>
+  </div>
+  <button type="button" class="gap-fill-btn" id="fillMissingChapterBtn">Isi Chapter</button>
+</div>
+
 <div id="chapterList" class="chapter-list" aria-live="polite"></div>
 
 <div class="list-actions">
@@ -113,7 +121,14 @@
     </section>
 
     <section class="tab-panel" id="panelProject" role="tabpanel" aria-labelledby="tabProject" hidden>
-      <section class="project-bar card"><div class="field novel-field"><label for="novelName">Nama Novel</label><input id="novelName" type="text" placeholder="Nama novel" autocomplete="off"></div><div class="project-actions"><div class="project-status-wrap"><div id="projectStatus" class="project-status">Belum ada chapter.</div><div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div></div><button type="button" class="btn btn-primary generate-btn" id="generateZipBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v4H3zM5 8v12h14V8M10 12h4"/></svg><span>Generate ZIP</span></button></div></section>
+      <section class="project-bar card"><div class="field novel-field"><label for="novelName">Nama Novel</label><input id="novelName" type="text" placeholder="Nama novel" autocomplete="off"></div><div class="project-actions"><div class="project-status-wrap">
+  <div id="projectStatus" class="project-status">Belum ada chapter.</div>
+  <div id="zipNamePreview" class="zip-name-preview">Nama ZIP: —</div>
+  <button type="button" id="projectGapWarning" class="project-gap-warning" hidden title="Klik untuk melihat daftar chapter">
+    <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <span id="projectGapText"></span>
+  </button>
+</div><button type="button" class="btn btn-primary generate-btn" id="generateZipBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v4H3zM5 8v12h14V8M10 12h4"/></svg><span>Generate ZIP</span></button></div></section>
       <section class="project-help card"><div class="project-help-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg><span>Status Project</span></div><p>Nama ZIP dibuat otomatis berdasarkan nama novel dan rentang chapter yang tersimpan.</p><div class="zip-example">Contoh: Novel10-20.zip</div><button type="button" class="btn btn-secondary" id="goToChaptersBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Lihat Chapter Terkumpul</span></button></section>
     </section>
 

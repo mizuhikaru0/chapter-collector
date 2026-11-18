@@ -12,6 +12,11 @@ const chapterList = $("chapterList");
 const chapterCount = $("chapterCount");
 const projectStatus = $("projectStatus");
 const zipNamePreview = $("zipNamePreview");
+const chapterGapWarning = $("chapterGapWarning");
+const chapterGapText = $("chapterGapText");
+const fillMissingChapterBtn = $("fillMissingChapterBtn");
+const projectGapWarning = $("projectGapWarning");
+const projectGapText = $("projectGapText");
 const editorStatus = $("editorStatus");
 const editorStats = $("editorStats");
 const storageStatus = $("storageStatus");
@@ -180,6 +185,103 @@ function getZipFileName(
   );
 }
 
+/* =========================================================
+   DETEKSI CHAPTER TERLEWAT (GAP DETECTION)
+   ========================================================= */
+
+function findMissingChapters(
+  numbers = Object.keys(state.chapters).map(Number)
+) {
+  const baseIntegers = [
+    ...new Set(
+      numbers
+        .filter(Number.isFinite)
+        .map(num => Math.floor(num))
+    )
+  ].sort((a, b) => a - b);
+
+  if (baseIntegers.length < 2) {
+    return { missingNumbers: [], ranges: [], totalMissing: 0 };
+  }
+
+  const presentSet = new Set(baseIntegers);
+  const min = baseIntegers[0];
+  const max = baseIntegers[baseIntegers.length - 1];
+  const missingNumbers = [];
+
+  for (let n = min + 1; n < max; n++) {
+    if (!presentSet.has(n)) {
+      missingNumbers.push(n);
+    }
+  }
+
+  const ranges = [];
+  let i = 0;
+  while (i < missingNumbers.length) {
+    const start = missingNumbers[i];
+    let end = start;
+    while (
+      i + 1 < missingNumbers.length &&
+      missingNumbers[i + 1] === end + 1
+    ) {
+      i++;
+      end = missingNumbers[i];
+    }
+    ranges.push(start === end ? String(start) : `${start}–${end}`);
+    i++;
+  }
+
+  return {
+    missingNumbers,
+    ranges,
+    totalMissing: missingNumbers.length
+  };
+}
+
+function formatMissingRanges(ranges, maxVisible = 8) {
+  if (ranges.length <= maxVisible) {
+    return ranges.join(", ");
+  }
+  const visible = ranges.slice(0, maxVisible).join(", ");
+  return `${visible}, +${ranges.length - maxVisible} lainnya`;
+}
+
+function updateGapWarnings(
+  numbers = Object.keys(state.chapters).map(Number)
+) {
+  const { missingNumbers, ranges, totalMissing } =
+    findMissingChapters(numbers);
+
+  if (!totalMissing) {
+    if (chapterGapWarning) chapterGapWarning.hidden = true;
+    if (projectGapWarning) projectGapWarning.hidden = true;
+    return;
+  }
+
+  const summaryText = formatMissingRanges(ranges, 8);
+  const fullListTitle = `Chapter terlewat: ${ranges.join(", ")}`;
+
+  if (chapterGapWarning && chapterGapText) {
+    chapterGapText.textContent =
+      `Terlewat ${totalMissing} chapter: Chapter ${summaryText}`;
+    chapterGapWarning.title = fullListTitle;
+    chapterGapWarning.hidden = false;
+
+    if (fillMissingChapterBtn) {
+      const firstMissing = missingNumbers[0];
+      fillMissingChapterBtn.dataset.number = String(firstMissing);
+      fillMissingChapterBtn.textContent = `Isi Ch. ${firstMissing}`;
+    }
+  }
+
+  if (projectGapWarning && projectGapText) {
+    projectGapText.textContent =
+      `Terlewat (${totalMissing}): Ch. ${formatMissingRanges(ranges, 5)}`;
+    projectGapWarning.title = fullListTitle;
+    projectGapWarning.hidden = false;
+  }
+}
+
 function updateProjectStatus() {
   const numbers = Object.keys(state.chapters)
     .map(Number)
@@ -190,6 +292,7 @@ function updateProjectStatus() {
   if (!count) {
     projectStatus.textContent = "Belum ada chapter.";
     zipNamePreview.textContent = "Nama ZIP: —";
+    updateGapWarnings(numbers);
     return;
   }
 
@@ -200,6 +303,8 @@ function updateProjectStatus() {
 
   zipNamePreview.textContent =
     `Nama ZIP: ${getZipFileName(numbers)}`;
+
+  updateGapWarnings(numbers);
 }
 
 function scheduleSave() {
@@ -1478,6 +1583,35 @@ if (chapterNumberSuggestion) {
 
     scheduleSave();
     chapterNumber.focus();
+  });
+}
+
+if (fillMissingChapterBtn) {
+  fillMissingChapterBtn.addEventListener("click", () => {
+    const targetNum = fillMissingChapterBtn.dataset.number;
+    if (!targetNum) return;
+
+    if (editingChapterNumber != null) {
+      editor.innerHTML = "";
+      updateEditorStats();
+    }
+
+    state.selected = null;
+    editingChapterNumber = null;
+    chapterNumber.value = targetNum;
+    editorStatus.textContent =
+      `Siap mengisi Chapter ${targetNum} yang terlewat.`;
+
+    updateChapterNumberSuggestion();
+    scheduleSave();
+    setActiveTab("input");
+    editor.focus();
+  });
+}
+
+if (projectGapWarning) {
+  projectGapWarning.addEventListener("click", () => {
+    setActiveTab("chapters");
   });
 }
 
