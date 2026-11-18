@@ -534,11 +534,35 @@ function updateChapterNumberSuggestion() {
    KONTEN CHAPTER
    ========================================================= */
 
-function ensureChapterHeading(content, number) {
-  const hasChapterHeading =
-    /<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s+\d+\b/i.test(content);
+const CHAPTER_HEADING_PATTERN = /^(?:Chapter|Ch\.?|Bab)\s*\d+\b/i;
 
-  if (hasChapterHeading) return content;
+function normalizeOrInsertChapterHeading(content, number) {
+  const box = document.createElement("div");
+  box.innerHTML = content;
+
+  const blocks = Array.from(box.children).filter(el =>
+    el.textContent.replace(/\u00a0/g, " ").trim().length > 0
+  ).slice(0, 3);
+
+  for (const el of blocks) {
+    const line = el.textContent.replace(/\u00a0/g, " ").trim();
+    if (CHAPTER_HEADING_PATTERN.test(line)) {
+      el.style.textAlign = "center";
+      return box.innerHTML.trim();
+    }
+  }
+
+  const firstNode = box.firstChild;
+  if (firstNode && firstNode.nodeType === Node.TEXT_NODE) {
+    const firstText = firstNode.nodeValue.trim();
+    if (CHAPTER_HEADING_PATTERN.test(firstText)) {
+      const h2 = document.createElement("h2");
+      h2.style.textAlign = "center";
+      h2.textContent = firstText;
+      box.replaceChild(h2, firstNode);
+      return box.innerHTML.trim();
+    }
+  }
 
   return (
     `<h2 style="text-align: center;">Chapter ${number}</h2>\n` +
@@ -572,7 +596,7 @@ function addChapter() {
     return;
   }
 
-  content = ensureChapterHeading(content, number);
+  content = normalizeOrInsertChapterHeading(content, number);
 
   state.chapters[number] = content;
   state.lastAddedChapterNumber = number;
@@ -637,13 +661,28 @@ function updateChapter() {
     return;
   }
 
-  // Jika nomor chapter diubah, sesuaikan nomor pada heading yang sudah ada.
-  // Judul tambahan setelah nomor (mis. ": The Beginning") tetap dipertahankan.
-  content = content.replace(
-    /(<h[1-6]\b[^>]*>\s*(?:Chapter|Ch\.?|Bab)\s*)\d+(\b[^<]*<\/h[1-6]>)/i,
-    `$1${targetNumber}$2`
-  );
-  content = ensureChapterHeading(content, targetNumber);
+  // Jika nomor chapter diubah, sesuaikan nomor pada heading yang sudah ada
+  // sambil mempertahankan judul tambahan (mis. ": The Beginning") dan rata tengah.
+  const box = document.createElement("div");
+  box.innerHTML = content;
+
+  const blocks = Array.from(box.children).filter(el =>
+    el.textContent.replace(/\u00a0/g, " ").trim().length > 0
+  ).slice(0, 3);
+
+  for (const el of blocks) {
+    const line = el.textContent.replace(/\u00a0/g, " ").trim();
+    if (CHAPTER_HEADING_PATTERN.test(line)) {
+      el.innerHTML = el.innerHTML.replace(
+        /((?:Chapter|Ch\.?|Bab)\s*)\d+/i,
+        `$1${targetNumber}`
+      );
+      el.style.textAlign = "center";
+      break;
+    }
+  }
+
+  content = normalizeOrInsertChapterHeading(box.innerHTML.trim(), targetNumber);
 
   if (targetNumber !== originalNumber) {
     delete state.chapters[originalNumber];
