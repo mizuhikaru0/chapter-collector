@@ -119,7 +119,7 @@ function showToast(message) {
 
   showToast.timer = setTimeout(
     () => toast.classList.remove("show"),
-    2200
+    2600
   );
 }
 
@@ -234,10 +234,7 @@ function updateDeleteSelectionUI() {
   const selectedCount = deletionSelection.size;
   const deleteButton = $("deleteChapterBtn");
   const selectedCountLabel = $("selectedChapterCount");
-
-  // PERBAIKAN: ID harus sama dengan yang ada di index.html.
   const selectAllCheckbox = $("selectAllChapters");
-
   const totalCount = existingNumbers.size;
 
   deleteButton.disabled = selectedCount === 0;
@@ -420,26 +417,27 @@ function detectChapter(silent = false) {
   const source = editor.innerHTML || editor.textContent || "";
 
   const patterns = [
-    /<h[1-6][^>]*>\s*(?:BAB|Chapter|Ch\.)\s+(\d+)\b/i,
-    /^(?:BAB|Chapter|Ch\.)\s+(\d+)\b/im,
-    /\b(?:BAB|Chapter)\s+(\d+)\b/i,
-    /\bCh\.\s*(\d+)\b/i
+    /<h[1-6][^>]*>(?:\s|<[^>]+>)*?(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)\b/i,
+    /^(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)\b/im,
+    /\b(?:BAB|Chapter)\s*(\d+(?:[.,]\d+)?)\b/i,
+    /\bCh\.?\s*(\d+(?:[.,]\d+)?)\b/i
   ];
 
   for (const pattern of patterns) {
     const match = source.match(pattern);
 
     if (match) {
-      chapterNumber.value = match[1];
+      const detected = match[1].replace(",", ".");
+      chapterNumber.value = detected;
 
       updateChapterNumberSuggestion();
       scheduleSave();
 
       if (!silent) {
-        showToast(`Chapter ${match[1]} terdeteksi.`);
+        showToast(`Chapter ${detected} terdeteksi.`);
       }
 
-      return Number(match[1]);
+      return Number(detected);
     }
   }
 
@@ -453,8 +451,12 @@ function detectChapter(silent = false) {
 }
 
 function getNumber() {
-  const match = chapterNumber.value.match(/\d+/);
-  return match ? Number(match[0]) : null;
+  const normalized = chapterNumber.value.trim().replace(",", ".");
+  const match = normalized.match(/\d+(?:\.\d+)?/);
+  if (!match) return null;
+
+  const num = Number(match[0]);
+  return Number.isFinite(num) ? num : null;
 }
 
 function hasRecognizedChapterHeading() {
@@ -467,8 +469,8 @@ function hasRecognizedChapterHeading() {
     .slice(0, 3);
 
   const patterns = [
-    /^(?:BAB|Chapter|Ch\.?)\s*\d+\b/i,
-    /^\d+\s*[:.\-–—]\s*\S+/i,
+    /^(?:BAB|Chapter|Ch\.?)\s*\d+(?:[.,]\d+)?\b/i,
+    /^\d+(?:[.,]\d+)?\s*[:.\-–—]\s*\S+/i,
     /^(?:prolog|prologue|epilog|epilogue)\b/i
   ];
 
@@ -483,19 +485,20 @@ function hasRecognizedChapterHeading() {
   const source = editor.innerHTML || editor.textContent || "";
 
   return [
-    /<h[1-6][^>]*>\s*(?:BAB|Chapter|Ch\.)\s+(\d+)\b/i,
-    /^(?:BAB|Chapter|Ch\.)\s+(\d+)\b/im,
-    /\b(?:BAB|Chapter)\s+(\d+)\b/i,
-    /\bCh\.\s*(\d+)\b/i
+    /<h[1-6][^>]*>(?:\s|<[^>]+>)*?(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)\b/i,
+    /^(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)\b/im,
+    /\b(?:BAB|Chapter)\s*(\d+(?:[.,]\d+)?)\b/i,
+    /\bCh\.?\s*(\d+(?:[.,]\d+)?)\b/i
   ].some(pattern => pattern.test(source));
 }
 
 function getNextChapterSuggestion() {
   if (
-    Number.isInteger(state.lastAddedChapterNumber) &&
+    typeof state.lastAddedChapterNumber === "number" &&
+    Number.isFinite(state.lastAddedChapterNumber) &&
     state.lastAddedChapterNumber >= 0
   ) {
-    return state.lastAddedChapterNumber + 1;
+    return Math.floor(state.lastAddedChapterNumber) + 1;
   }
 
   const numbers = Object.keys(state.chapters)
@@ -503,7 +506,7 @@ function getNextChapterSuggestion() {
     .filter(Number.isFinite);
 
   return numbers.length
-    ? Math.max(...numbers) + 1
+    ? Math.floor(Math.max(...numbers)) + 1
     : 1;
 }
 
@@ -531,14 +534,55 @@ function updateChapterNumberSuggestion() {
 }
 
 /* =========================================================
-   KONTEN CHAPTER
+   KONTEN CHAPTER & BULK SPLITTER
    ========================================================= */
 
-const CHAPTER_HEADING_PATTERN = /^(?:Chapter|Ch\.?|Bab)\s*\d+\b/i;
+const CHAPTER_HEADING_PATTERN = /^(?:Chapter|Ch\.?|Bab)\s*\d+(?:[.,]\d+)?\b/i;
+const BULK_CHAPTER_HEADING_PATTERN = /^(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)(?:$|\s*[:.\-–—]\s*\S.*|\s+\S.*)/i;
+const CHAPTER_BREAK_MARKER_TEXT = "--- BATAS CHAPTER ---";
+
+function isChapterBreakBlock(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+  if (node.dataset?.chapterBreak === "true") return true;
+  const text = (node.textContent || "").replace(/\u00a0/g, " ").trim();
+  return text === CHAPTER_BREAK_MARKER_TEXT;
+}
+
+function isEmptySpacerElement(node) {
+  if (!node) return true;
+  if (node.nodeType === Node.TEXT_NODE) {
+    return !node.nodeValue.replace(/[\u00a0\s]/g, "");
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return true;
+  if (isChapterBreakBlock(node)) return false;
+  const tag = node.tagName.toLowerCase();
+  if (tag === "br") return true;
+  if (["img", "hr", "table"].includes(tag)) return false;
+  return (
+    !node.textContent.replace(/[\u00a0\s]/g, "") &&
+    !node.querySelector("img, hr, table")
+  );
+}
+
+function trimEdgeSpacerNodes(container) {
+  while (container.firstChild && isEmptySpacerElement(container.firstChild)) {
+    container.removeChild(container.firstChild);
+  }
+  while (container.lastChild && isEmptySpacerElement(container.lastChild)) {
+    container.removeChild(container.lastChild);
+  }
+}
 
 function normalizeOrInsertChapterHeading(content, number) {
   const box = document.createElement("div");
   box.innerHTML = content;
+
+  // Bersihkan pembatas chapter jika masih tersisa di dalam konten
+  Array.from(box.querySelectorAll("*")).forEach(el => {
+    if (isChapterBreakBlock(el)) el.remove();
+  });
+
+  trimEdgeSpacerNodes(box);
 
   const blocks = Array.from(box.children).filter(el =>
     el.textContent.replace(/\u00a0/g, " ").trim().length > 0
@@ -566,11 +610,324 @@ function normalizeOrInsertChapterHeading(content, number) {
 
   return (
     `<h2 style="text-align: center;">Chapter ${number}</h2>\n` +
-    `<br>\n${content}`
+    `<br>\n${box.innerHTML.trim()}`
   );
 }
 
+function extractNormalizedBlocks(rootElement) {
+  const BLOCK_TAGS = new Set([
+    "p", "h1", "h2", "h3", "h4", "h5", "h6",
+    "blockquote", "pre", "ul", "ol", "table",
+    "hr", "figure", "div"
+  ]);
+
+  const blocks = [];
+
+  function pushInlineBuffer(buffer) {
+    if (!buffer.length) return;
+    const p = document.createElement("p");
+    buffer.forEach(node => p.appendChild(node.cloneNode(true)));
+    if (!isEmptySpacerElement(p)) {
+      blocks.push(p);
+    }
+    buffer.length = 0;
+  }
+
+  function walk(node) {
+    let inlineBuffer = [];
+
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        if (child.nodeValue.trim()) {
+          inlineBuffer.push(child);
+        }
+        continue;
+      }
+
+      if (child.nodeType !== Node.ELEMENT_NODE) continue;
+
+      if (isChapterBreakBlock(child)) {
+        pushInlineBuffer(inlineBuffer);
+        blocks.push(child.cloneNode(true));
+        continue;
+      }
+
+      const tag = child.tagName.toLowerCase();
+
+      if (tag === "br") {
+        pushInlineBuffer(inlineBuffer);
+        continue;
+      }
+
+      if (!BLOCK_TAGS.has(tag)) {
+        inlineBuffer.push(child);
+        continue;
+      }
+
+      pushInlineBuffer(inlineBuffer);
+
+      // Jika div membungkus elemen blok lain, buka wrapper-nya agar tiap paragraf terpisah
+      if (tag === "div" && child.querySelector("p, div, h1, h2, h3, h4, h5, h6, blockquote, ul, ol, table")) {
+        walk(child);
+        continue;
+      }
+
+      // Jika paragraf/div mengandung <br> di dalamnya, pecah per baris agar judul chapter di tengah tidak menyatu
+      if ((tag === "p" || tag === "div") && child.querySelector("br")) {
+        const parts = child.innerHTML.split(/<br\s*\/?>/i);
+        for (const part of parts) {
+          const temp = document.createElement("p");
+          if (child.getAttribute("style")) {
+            temp.setAttribute("style", child.getAttribute("style"));
+          }
+          temp.innerHTML = part.trim();
+          if (!isEmptySpacerElement(temp)) {
+            blocks.push(temp);
+          }
+        }
+        continue;
+      }
+
+      if (!isEmptySpacerElement(child)) {
+        blocks.push(child.cloneNode(true));
+      }
+    }
+
+    pushInlineBuffer(inlineBuffer);
+  }
+
+  walk(rootElement);
+  return blocks;
+}
+
+function matchBulkHeadingBlock(el) {
+  const line = (el.textContent || "").replace(/\u00a0/g, " ").trim();
+  if (!line || line.length > 150) return null;
+
+  const match = line.match(BULK_CHAPTER_HEADING_PATTERN);
+  if (!match) return null;
+
+  const num = Number(match[1].replace(",", "."));
+  return Number.isFinite(num) ? num : null;
+}
+
+function parseChaptersFromHtml(rawHtml) {
+  const cleaned = cleanHtml(rawHtml);
+  if (!cleaned) return [];
+
+  const root = document.createElement("div");
+  root.innerHTML = cleaned;
+
+  const blocks = extractNormalizedBlocks(root);
+  const sections = [];
+  let current = null;
+
+  for (const block of blocks) {
+    // 1. Pemicu pemotongan dari pembatas khusus tombol Paste
+    if (isChapterBreakBlock(block)) {
+      if (current && (current.number != null || current.blocks.length > 0)) {
+        sections.push(current);
+      }
+      current = {
+        number: null,
+        blocks: []
+      };
+      continue;
+    }
+
+    // 2. Pemicu pemotongan dari header judul chapter di dalam teks
+    const detectedNum = matchBulkHeadingBlock(block);
+    if (detectedNum != null) {
+      if (current && current.number == null && current.blocks.length === 0) {
+        // Bagian baru tepat setelah pembatas Paste yang ternyata punya header chapter sendiri
+        current.number = detectedNum;
+        current.blocks.push(block);
+      } else {
+        if (current && (current.number != null || current.blocks.length > 0)) {
+          sections.push(current);
+        }
+        current = {
+          number: detectedNum,
+          blocks: [block]
+        };
+      }
+    } else {
+      if (!current) {
+        current = {
+          number: null,
+          blocks: []
+        };
+      }
+      current.blocks.push(block);
+    }
+  }
+
+  if (current && (current.number != null || current.blocks.length > 0)) {
+    sections.push(current);
+  }
+
+  return sections;
+}
+
+function splitBulkChapters() {
+  const raw = editor.innerHTML.trim();
+
+  if (!raw || !getPlainText(raw)) {
+    showToast("Input chapter masih kosong.");
+    return;
+  }
+
+  const sections = parseChaptersFromHtml(raw);
+
+  if (!sections.length) {
+    showToast("Tidak ada konten chapter yang dapat diproses.");
+    return;
+  }
+
+  const hasAnyHeading = sections.some(sec => sec.number != null);
+  const manualStart = getNumber();
+
+  // Syarat wajib: jika chapter pertama tidak punya header chapter,
+  // nomor chapter pertama harus diisi secara manual terlebih dahulu.
+  if (sections[0].number == null) {
+    if (manualStart == null) {
+      if (sections.length === 1 && !hasAnyHeading) {
+        showToast("Nomor chapter tidak ditemukan. Isi Nomor Chapter terlebih dahulu.");
+      } else {
+        showToast("Isi nomor chapter pertama di kolom Nomor Chapter terlebih dahulu.");
+      }
+      chapterNumber.focus();
+      return;
+    }
+    sections[0].number = manualStart;
+  }
+
+  // Untuk chapter selanjutnya yang tidak memiliki header chapter,
+  // otomatis mengikuti nomor chapter sebelumnya (+1).
+  let previousNumber = sections[0].number;
+  for (let i = 1; i < sections.length; i++) {
+    if (sections[i].number == null) {
+      sections[i].number = Math.floor(previousNumber) + 1;
+    }
+    previousNumber = sections[i].number;
+  }
+
+  const preparedChapters = [];
+  const internalDuplicates = new Set();
+  const seenNumbers = new Set();
+
+  for (const sec of sections) {
+    if (sec.number == null) continue;
+
+    if (seenNumbers.has(sec.number)) {
+      internalDuplicates.add(sec.number);
+    }
+    seenNumbers.add(sec.number);
+
+    const container = document.createElement("div");
+    sec.blocks.forEach(b => container.appendChild(b.cloneNode(true)));
+    trimEdgeSpacerNodes(container);
+
+    const rawSectionHtml = container.innerHTML.trim();
+    if (!rawSectionHtml) continue;
+
+    const finalHtml = normalizeOrInsertChapterHeading(rawSectionHtml, sec.number);
+    preparedChapters.push({
+      number: sec.number,
+      content: finalHtml
+    });
+  }
+
+  if (!preparedChapters.length) {
+    showToast("Tidak ada konten chapter yang valid untuk dipecah.");
+    return;
+  }
+
+  if (internalDuplicates.size > 0) {
+    const dupList = [...internalDuplicates]
+      .sort((a, b) => a - b)
+      .map(n => `Chapter ${n}`)
+      .join(", ");
+
+    if (
+      !confirm(
+        `Ditemukan nomor chapter ganda di dalam editor:\n${dupList}\n\n` +
+        `Lanjutkan? (Versi yang paling bawah akan dipakai)`
+      )
+    ) {
+      return;
+    }
+  }
+
+  const existingConflicts = [...new Set(
+    preparedChapters
+      .map(ch => ch.number)
+      .filter(num => Object.prototype.hasOwnProperty.call(state.chapters, num))
+  )].sort((a, b) => a - b);
+
+  if (existingConflicts.length > 0) {
+    const conflictLabels = existingConflicts
+      .map(n => `Chapter ${n}`)
+      .join(", ");
+
+    if (
+      !confirm(
+        `${existingConflicts.length} chapter sudah tersimpan sebelumnya:\n${conflictLabels}\n\n` +
+        `Timpa chapter yang sudah ada?`
+      )
+    ) {
+      return;
+    }
+  }
+
+  const addedNumbers = [];
+  for (const ch of preparedChapters) {
+    state.chapters[ch.number] = ch.content;
+    addedNumbers.push(ch.number);
+  }
+
+  const uniqueSorted = [...new Set(addedNumbers)].sort((a, b) => a - b);
+  const maxNumber = uniqueSorted[uniqueSorted.length - 1];
+  const minNumber = uniqueSorted[0];
+
+  state.lastAddedChapterNumber = maxNumber;
+  state.selected = maxNumber;
+  editingChapterNumber = null;
+  state.previewed = null;
+
+  chapterNumber.value = "";
+  editor.innerHTML = "";
+
+  updateEditorStats();
+  updateChapterNumberSuggestion();
+
+  const rangeLabel =
+    uniqueSorted.length === 1
+      ? `Chapter ${minNumber}`
+      : `Chapter ${minNumber}–${maxNumber}`;
+
+  editorStatus.textContent =
+    `✓ ${uniqueSorted.length} chapter (${rangeLabel}) berhasil dipecah dan ditambahkan.`;
+
+  renderList();
+  scheduleSave();
+  showToast(`${uniqueSorted.length} chapter berhasil dipecah (${rangeLabel}).`);
+}
+
 function addChapter() {
+  const raw = editor.innerHTML.trim();
+
+  if (!raw) {
+    showToast("Input chapter masih kosong.");
+    return;
+  }
+
+  const sections = parseChaptersFromHtml(raw);
+  if (sections.length > 1) {
+    showToast(`Terdeteksi ${sections.length} bagian chapter. Klik tombol Pecah Chapter.`);
+    return;
+  }
+
   let number = getNumber();
 
   if (number == null) {
@@ -579,13 +936,6 @@ function addChapter() {
 
   if (number == null) {
     showToast("Nomor chapter tidak ditemukan.");
-    return;
-  }
-
-  const raw = editor.innerHTML.trim();
-
-  if (!raw) {
-    showToast("Input chapter masih kosong.");
     return;
   }
 
@@ -674,7 +1024,7 @@ function updateChapter() {
     const line = el.textContent.replace(/\u00a0/g, " ").trim();
     if (CHAPTER_HEADING_PATTERN.test(line)) {
       el.innerHTML = el.innerHTML.replace(
-        /((?:Chapter|Ch\.?|Bab)\s*)\d+/i,
+        /((?:Chapter|Ch\.?|Bab)\s*)\d+(?:[.,]\d+)?/i,
         `$1${targetNumber}`
       );
       el.style.textAlign = "center";
@@ -805,8 +1155,91 @@ async function clearAll() {
 }
 
 /* =========================================================
-   TEMPEL DAN IMPOR
+   SMART PASTE DAN IMPOR
    ========================================================= */
+
+function plainTextToHtmlBlocks(text) {
+  const lines = String(text || "").replace(/\r\n?/g, "\n").split("\n");
+
+  // Buang baris kosong berlebih di paling atas & paling bawah teks tempelan
+  while (lines.length && !lines[0].trim()) lines.shift();
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+
+  if (!lines.length) return "";
+
+  const fragment = document.createDocumentFragment();
+  let lastWasBlank = false;
+
+  for (const line of lines) {
+    if (!line.trim()) {
+      if (!lastWasBlank) {
+        const spacer = document.createElement("p");
+        spacer.appendChild(document.createElement("br"));
+        fragment.appendChild(spacer);
+        lastWasBlank = true;
+      }
+    } else {
+      const p = document.createElement("p");
+      p.textContent = line;
+      fragment.appendChild(p);
+      lastWasBlank = false;
+    }
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(fragment);
+  return wrapper.innerHTML;
+}
+
+function createChapterBreakElement() {
+  const divider = document.createElement("p");
+  divider.dataset.chapterBreak = "true";
+  divider.style.textAlign = "center";
+  divider.style.color = "#285f9e";
+  divider.textContent = CHAPTER_BREAK_MARKER_TEXT;
+  return divider;
+}
+
+function appendSmartContentToEditor(incomingHtml) {
+  if (!incomingHtml || !incomingHtml.trim()) return false;
+
+  const incomingBox = document.createElement("div");
+  incomingBox.innerHTML = incomingHtml;
+  trimEdgeSpacerNodes(incomingBox);
+
+  if (!incomingBox.childNodes.length) return false;
+
+  const hasExistingContent = getPlainText(editor.innerHTML).length > 0;
+
+  if (!hasExistingContent) {
+    editor.innerHTML = "";
+  } else {
+    // Rapikan akhir konten lama agar tidak menumpuk baris kosong berlebihan
+    trimEdgeSpacerNodes(editor);
+
+    // Sisipkan pembatas khusus sebagai pemicu pemotongan antar-chapter
+    if (!isChapterBreakBlock(editor.lastElementChild)) {
+      editor.appendChild(createChapterBreakElement());
+    }
+  }
+
+  while (incomingBox.firstChild) {
+    editor.appendChild(incomingBox.firstChild);
+  }
+
+  // Pindahkan kursor ke paling akhir & scroll otomatis ke bawah
+  const selection = window.getSelection();
+  if (selection) {
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  editor.scrollTop = editor.scrollHeight;
+  return hasExistingContent;
+}
 
 async function pasteClipboard() {
   const wasMobile = isMobileEditor.matches;
@@ -818,7 +1251,9 @@ async function pasteClipboard() {
   }
 
   try {
-    editor.focus();
+    let inserted = false;
+    let appended = false;
+    let isHtmlSource = false;
 
     if (navigator.clipboard?.read) {
       const items = await navigator.clipboard.read();
@@ -826,22 +1261,56 @@ async function pasteClipboard() {
       for (const item of items) {
         if (item.types.includes("text/html")) {
           const blob = await item.getType("text/html");
-          document.execCommand("insertHTML", false, await blob.text());
-          scheduleSave();
-          updateEditorStats();
-          updateChapterNumberSuggestion();
-          showToast("HTML berformat berhasil ditempel.");
-          return;
+          const cleaned = cleanHtml(await blob.text());
+          if (cleaned) {
+            appended = appendSmartContentToEditor(cleaned);
+            inserted = true;
+            isHtmlSource = true;
+            break;
+          }
         }
       }
     }
 
-    const text = await navigator.clipboard.readText();
-    document.execCommand("insertText", false, text);
-    scheduleSave();
-    updateEditorStats();
-    updateChapterNumberSuggestion();
-    showToast("Teks berhasil ditempel.");
+    if (!inserted) {
+      const text = await navigator.clipboard.readText();
+      const htmlFromText = plainTextToHtmlBlocks(text);
+      if (!htmlFromText) {
+        showToast("Clipboard kosong.");
+        return;
+      }
+      appended = appendSmartContentToEditor(htmlFromText);
+      inserted = true;
+    }
+
+    if (inserted) {
+      scheduleSave();
+      updateEditorStats();
+      updateChapterNumberSuggestion();
+
+      const sections = parseChaptersFromHtml(editor.innerHTML);
+      const sectionCount = sections.length;
+      const needsManualStart = sections[0]?.number == null && getNumber() == null;
+
+      if (sectionCount > 1) {
+        if (needsManualStart) {
+          editorStatus.textContent =
+            `${sectionCount} bagian chapter terdeteksi. Isi Nomor Chapter pertama lalu klik Pecah Chapter.`;
+        } else {
+          editorStatus.textContent =
+            `Siap pecah: ${sectionCount} chapter terdeteksi. Klik Pecah Chapter.`;
+        }
+        showToast(
+          `${appended ? "Ditambahkan dengan pembatas" : "Berhasil ditempel"} (${sectionCount} bagian chapter).`
+        );
+      } else {
+        showToast(
+          isHtmlSource
+            ? "HTML berformat berhasil ditempel."
+            : "Teks berhasil ditempel."
+        );
+      }
+    }
   } catch (error) {
     console.error(error);
     showToast("Clipboard tidak dapat diakses. Gunakan Ctrl+V atau izinkan akses clipboard.");
@@ -858,24 +1327,35 @@ function importTxt(file) {
   const reader = new FileReader();
 
   reader.onload = () => {
-    editor.innerHTML = String(reader.result || "");
+    const rawText = String(reader.result || "");
+    editor.innerHTML = plainTextToHtmlBlocks(rawText);
 
     updateEditorStats();
 
-    const numberMatch = file.name.match(
-      /(?:chapter|ch)[\s_-]*(\d+)/i
-    );
+    const sections = parseChaptersFromHtml(editor.innerHTML);
+    const detectedCount = sections.filter(s => s.number != null).length;
 
-    if (numberMatch) {
-      chapterNumber.value = numberMatch[1];
+    if (detectedCount > 1) {
+      chapterNumber.value = "";
+      editorStatus.textContent =
+        `TXT diimpor: ${detectedCount} chapter terdeteksi. Klik Pecah Chapter.`;
+      showToast(`TXT diimpor (${detectedCount} chapter terdeteksi). Klik Pecah Chapter.`);
     } else {
-      detectChapter(true);
+      const numberMatch = file.name.match(
+        /(?:chapter|ch|bab)[\s_-]*(\d+(?:[.,]\d+)?)/i
+      );
+
+      if (numberMatch) {
+        chapterNumber.value = numberMatch[1].replace(",", ".");
+      } else {
+        detectChapter(true);
+      }
+
+      showToast("TXT berhasil diimpor.");
     }
 
     updateChapterNumberSuggestion();
     scheduleSave();
-
-    showToast("TXT berhasil diimpor.");
   };
 
   reader.readAsText(file, "UTF-8");
@@ -945,7 +1425,10 @@ async function init() {
     editor.innerHTML = state.draft || "";
   }
 
-  if (!Number.isInteger(state.lastAddedChapterNumber)) {
+  if (
+    typeof state.lastAddedChapterNumber !== "number" ||
+    !Number.isFinite(state.lastAddedChapterNumber)
+  ) {
     const savedNumbers = Object.keys(state.chapters)
       .map(Number)
       .filter(Number.isFinite);
@@ -1069,6 +1552,8 @@ $("updateChapterBtn").addEventListener("click", updateChapter);
 
 $("clearDraftBtn").addEventListener("click", clearDraft);
 
+$("splitChaptersBtn").addEventListener("click", splitBulkChapters);
+
 $("deleteChapterBtn").addEventListener("click", deleteChapter);
 
 /*
@@ -1102,6 +1587,7 @@ $("importTxtBtn").addEventListener("click", () => {
 
 $("txtFileInput").addEventListener("change", event => {
   importTxt(event.target.files[0]);
+  event.target.value = "";
 });
 
 $("closePreviewBtn").addEventListener("click", closePreview);

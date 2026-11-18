@@ -32,7 +32,8 @@
       id="chapterNumber"
       type="number"
       min="0"
-      step="1"
+      step="any"
+      inputmode="decimal"
       placeholder="1"
     >
     <button
@@ -74,7 +75,14 @@
         <div class="editor-wrap"><div id="chapterEditor" class="rich-editor" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Isi chapter"></div><div class="editor-placeholder">Paste atau tulis terjemahan chapter di sini...</div></div>
         <div class="editor-resize-handle" id="editorResizeHandle" role="separator" aria-orientation="horizontal" aria-label="Tarik untuk mengatur tinggi editor" tabindex="0" title="Tarik untuk mengatur tinggi editor"><span></span></div>
         <div class="editor-info"><span id="editorStats">0 karakter · 0 kata · 0 paragraf</span><span id="editorSaveHint">Perubahan disimpan otomatis</span></div>
-        <div class="editor-actions"><button type="button" class="btn btn-primary grow" id="addChapterBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Tambah Chapter</span></button><button type="button" class="btn btn-secondary" id="updateChapterBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Update</span></button><button type="button" class="btn btn-secondary" id="clearDraftBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16 8-8 5 5-8 8H4zM14 6l2-2 4 4-2 2M3 21h18"/></svg><span>Bersihkan Input</span></button><button type="button" class="btn btn-secondary" id="importTxtBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10z"/><path d="M13 3v7h7M8 14h8M8 18h8"/></svg><span>Import TXT</span></button><input id="txtFileInput" type="file" accept=".txt,text/plain" hidden></div>
+        <div class="editor-actions">
+          <button type="button" class="btn btn-primary grow" id="addChapterBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Tambah Chapter</span></button>
+          <button type="button" class="btn btn-secondary" id="updateChapterBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.2 8a2.1 2.1 0 0 0-3-3L5 16.2z"/><path d="M4 4v5M2 6h5"/></svg><span>Update</span></button>
+          <button type="button" class="btn btn-secondary" id="clearDraftBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16 8-8 5 5-8 8H4zM14 6l2-2 4 4-2 2M3 21h18"/></svg><span>Bersihkan Input</span></button>
+          <button type="button" class="btn btn-secondary" id="importTxtBtn"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10z"/><path d="M13 3v7h7M8 14h8M8 18h8"/></svg><span>Import TXT</span></button>
+          <button type="button" class="btn btn-secondary" id="splitChaptersBtn" title="Pecah banyak chapter sekaligus dari isi editor"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h7M4 18h16"/><path d="m15 9 3 3-3 3"/></svg><span>Pecah Chapter</span></button>
+          <input id="txtFileInput" type="file" accept=".txt,text/plain" hidden>
+        </div>
       </section>
       <section class="format-note card"><strong><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M8 14a7 7 0 1 1 8 0c-1 .8-1 2-1 2h-6s0-1.2-1-2z"/></svg><span>Alur cepat:</span></strong><span>Paste → Deteksi/isi nomor → Tambah → Input dikosongkan → ulangi → cek daftar → Generate ZIP.</span></section>
     </section>
