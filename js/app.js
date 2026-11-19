@@ -92,6 +92,7 @@ function runEditorCommand(command, value = null) {
   document.execCommand(command, false, value);
   updateEditorStats();
   updateChapterNumberSuggestion();
+  updateBulkEditorStatus();
   scheduleSave();
 }
 
@@ -874,6 +875,93 @@ function parseChaptersFromHtml(rawHtml) {
   return sections;
 }
 
+function getBulkEditorSummary(rawHtml = editor.innerHTML) {
+  const sections = parseChaptersFromHtml(rawHtml);
+  const count = sections.length;
+
+  if (count <= 1) {
+    return {
+      isBulk: false,
+      count,
+      needsManualStart: false,
+      first: null,
+      last: null,
+      rangeLabel: ""
+    };
+  }
+
+  const manualStart = getNumber();
+  const firstNum = sections[0].number != null ? sections[0].number : manualStart;
+
+  if (firstNum == null) {
+    return {
+      isBulk: true,
+      count,
+      needsManualStart: true,
+      first: null,
+      last: null,
+      rangeLabel: ""
+    };
+  }
+
+  const resolvedNumbers = [firstNum];
+  let previousNumber = firstNum;
+
+  for (let i = 1; i < count; i++) {
+    const nextNum =
+      sections[i].number != null
+        ? sections[i].number
+        : Math.floor(previousNumber) + 1;
+    resolvedNumbers.push(nextNum);
+    previousNumber = nextNum;
+  }
+
+  const first = resolvedNumbers[0];
+  const last = resolvedNumbers[resolvedNumbers.length - 1];
+  const rangeLabel =
+    first === last
+      ? `Chapter ${first}`
+      : `Chapter ${first}–${last}`;
+
+  return {
+    isBulk: true,
+    count,
+    needsManualStart: false,
+    first,
+    last,
+    rangeLabel
+  };
+}
+
+function updateBulkEditorStatus(prefix = "") {
+  const summary = getBulkEditorSummary();
+
+  if (summary.isBulk) {
+    const lead = prefix ? `${prefix}: ` : "";
+    if (summary.needsManualStart) {
+      editorStatus.textContent =
+        `${lead}${summary.count} bagian chapter terdeteksi. Isi Nomor Chapter pertama lalu klik Pecah Chapter.`;
+    } else {
+      editorStatus.textContent =
+        `${lead}Siap pecah: ${summary.rangeLabel} (${summary.count} chapter). Klik Pecah Chapter.`;
+    }
+    return summary;
+  }
+
+  if (
+    editingChapterNumber == null &&
+    (
+      editorStatus.textContent.startsWith("Siap pecah:") ||
+      editorStatus.textContent.includes("bagian chapter terdeteksi") ||
+      editorStatus.textContent.startsWith("TXT diimpor:")
+    )
+  ) {
+    editorStatus.textContent = "Siap untuk chapter berikutnya.";
+  }
+
+  return summary;
+}
+
 function splitBulkChapters() {
   const raw = editor.innerHTML.trim();
 
@@ -1029,7 +1117,9 @@ function addChapter() {
 
   const sections = parseChaptersFromHtml(raw);
   if (sections.length > 1) {
-    showToast(`Terdeteksi ${sections.length} bagian chapter. Klik tombol Pecah Chapter.`);
+    const summary = updateBulkEditorStatus();
+    const info = summary.rangeLabel ? ` (${summary.rangeLabel})` : "";
+    showToast(`Terdeteksi ${sections.length} bagian chapter${info}. Klik Pecah Chapter.`);
     return;
   }
 
@@ -1393,21 +1483,18 @@ async function pasteClipboard() {
       updateEditorStats();
       updateChapterNumberSuggestion();
 
-      const sections = parseChaptersFromHtml(editor.innerHTML);
-      const sectionCount = sections.length;
-      const needsManualStart = sections[0]?.number == null && getNumber() == null;
+      const summary = updateBulkEditorStatus();
 
-      if (sectionCount > 1) {
-        if (needsManualStart) {
-          editorStatus.textContent =
-            `${sectionCount} bagian chapter terdeteksi. Isi Nomor Chapter pertama lalu klik Pecah Chapter.`;
+      if (summary.isBulk) {
+        if (summary.needsManualStart) {
+          showToast(
+            `${appended ? "Ditambahkan dengan pembatas" : "Berhasil ditempel"} (${summary.count} bagian — isi nomor awal).`
+          );
         } else {
-          editorStatus.textContent =
-            `Siap pecah: ${sectionCount} chapter terdeteksi. Klik Pecah Chapter.`;
+          showToast(
+            `${appended ? "Ditambahkan" : "Berhasil ditempel"}: ${summary.rangeLabel} (${summary.count} chapter).`
+          );
         }
-        showToast(
-          `${appended ? "Ditambahkan dengan pembatas" : "Berhasil ditempel"} (${sectionCount} bagian chapter).`
-        );
       } else {
         showToast(
           isHtmlSource
@@ -1442,9 +1529,9 @@ function importTxt(file) {
 
     if (detectedCount > 1) {
       chapterNumber.value = "";
-      editorStatus.textContent =
-        `TXT diimpor: ${detectedCount} chapter terdeteksi. Klik Pecah Chapter.`;
-      showToast(`TXT diimpor (${detectedCount} chapter terdeteksi). Klik Pecah Chapter.`);
+      const summary = updateBulkEditorStatus("TXT diimpor");
+      const rangeInfo = summary.rangeLabel ? `${summary.rangeLabel} (${summary.count} chapter)` : `${detectedCount} chapter`;
+      showToast(`TXT diimpor: ${rangeInfo}. Klik Pecah Chapter.`);
     } else {
       const numberMatch = file.name.match(
         /(?:chapter|ch|bab)[\s_-]*(\d+(?:[.,]\d+)?)/i
@@ -1456,6 +1543,7 @@ function importTxt(file) {
         detectChapter(true);
       }
 
+      updateBulkEditorStatus();
       showToast("TXT berhasil diimpor.");
     }
 
@@ -1546,6 +1634,7 @@ async function init() {
   renderList();
   updateEditorStats();
   updateChapterNumberSuggestion();
+  updateBulkEditorStatus();
 
   setActiveTab("input");
 
@@ -1563,12 +1652,14 @@ novelName.addEventListener("input", () => {
 
 chapterNumber.addEventListener("input", () => {
   updateChapterNumberSuggestion();
+  updateBulkEditorStatus();
   scheduleSave();
 });
 
 editor.addEventListener("input", () => {
   updateEditorStats();
   updateChapterNumberSuggestion();
+  updateBulkEditorStatus();
   scheduleSave();
 });
 
@@ -1581,6 +1672,7 @@ if (chapterNumberSuggestion) {
 
     chapterNumberSuggestion.hidden = true;
 
+    updateBulkEditorStatus();
     scheduleSave();
     chapterNumber.focus();
   });
