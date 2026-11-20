@@ -643,8 +643,8 @@ function updateChapterNumberSuggestion() {
    KONTEN CHAPTER & BULK SPLITTER
    ========================================================= */
 
-const CHAPTER_HEADING_PATTERN = /^(?:Chapter|Ch\.?|Bab)\s*\d+(?:[.,]\d+)?\b/i;
-const BULK_CHAPTER_HEADING_PATTERN = /^(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)(?:$|\s*[:.\-–—]\s*\S.*|\s+\S.*)/i;
+const CHAPTER_HEADING_PATTERN = /^(?:Chapter|Ch\.?|Bab)\s*\d+(?:[.,]\d+)?(?![0-9])/i;
+const BULK_CHAPTER_HEADING_PATTERN = /^(?:BAB|Chapter|Ch\.?)\s*(\d+(?:[.,]\d+)?)(?![0-9])(?:\s*$|[\s:.\-–—,;()[\]]+.*)/i;
 const CHAPTER_BREAK_MARKER_TEXT = "--- BATAS CHAPTER ---";
 
 function isChapterBreakBlock(node) {
@@ -807,7 +807,10 @@ function extractNormalizedBlocks(rootElement) {
 }
 
 function matchBulkHeadingBlock(el) {
-  const line = (el.textContent || "").replace(/\u00a0/g, " ").trim();
+  const line = (el.textContent || "")
+    .replace(/[\u00a0\u200b-\u200d\ufeff]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!line || line.length > 150) return null;
 
   const match = line.match(BULK_CHAPTER_HEADING_PATTERN);
